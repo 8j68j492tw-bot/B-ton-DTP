@@ -1,0 +1,37 @@
+{
+  "exportedAt": "2026-09-15T00:00:00.000Z",
+  "produits": [
+    {
+      "nom": "Sikacrete®-08 SCC",
+      "fabricant": "Sika Canada",
+      "eauMin": "2.5",
+      "eauMax": "2.7",
+      "tempsBrassage": "3",
+      "resistance": "11 MPa (24 h) / 39 MPa (3 jours) / 55 MPa (28 jours)",
+      "formatSac": "25 kg",
+      "rendement": "13 L par sac",
+      "tempsPrise": "Délai maximal d'utilisation : 25-30 min",
+      "tempsCure": "Mûrissement requis selon ACI 308 (toile de jute humide, pellicule de polyéthylène ou agent de cure) — durée exacte non précisée",
+      "applications": "Réparations structurales (stationnements, ponts, tunnels, barrages, balcons), remplissage de vides et cavités, épaisseurs de 25 à 450 mm",
+      "notes": "Pompable ou coulé. Homologué MTMD Québec. Malaxer à basse vitesse (400-500 tr/min). Ne pas surdoser en eau.",
+      "lienFiche": "https://can.sika.com/dam/dms/ca01/1/sikacrete-08-scc.pdf",
+      "id": "1789503476528"
+    },
+    {
+      "nom": "Sikacrete®-211 Flow PLUS",
+      "fabricant": "Sika Canada",
+      "eauMin": "2.1",
+      "eauMax": "2.7",
+      "tempsBrassage": "3",
+      "resistance": "18 MPa (1 jour) / 32 MPa (7 jours) / 45 MPa (28 jours) — consistance coulable, 2,7 L/sac",
+      "formatSac": "25 kg",
+      "rendement": "13 L par sac",
+      "tempsPrise": "Prise initiale : 160 min · Prise finale : 270 min",
+      "tempsCure": "Mûrissement requis selon ACI 308 (toile de jute humide, pellicule de polyéthylène ou agent de cure) — durée exacte non précisée",
+      "applications": "Réparations structurales pleine profondeur/partielles (stationnements, ponts, tunnels, barrages, balcons), remplissage de vides et cavités",
+      "notes": "Pompable ou coulé. Bonifié de 5% fumée de silice. Inhibiteur de corrosion intégré. Malaxer à basse vitesse (300-450 tr/min), max 3 min. Température minimum d'application : 7°C.",
+      "lienFiche": "https://can.sika.com/content/dam/dms/ca01/b/Sikacrete-211FlowPlus_pds_Fr.pdf",
+      "id": "1789503476529"
+    }
+  ]
+}
