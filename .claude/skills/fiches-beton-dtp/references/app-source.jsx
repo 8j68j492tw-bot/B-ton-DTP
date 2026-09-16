@@ -1273,11 +1273,26 @@ Règles :
             </div>
           )}
           {selected.lienFiche && (
-            <a href={selected.lienFiche} rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 6, color: C.accent, fontSize: 13, textDecoration: "none", padding: "10px 0 18px" }}>
+            <button onClick={() => setView("pdf")} style={{ display: "flex", alignItems: "center", gap: 6, color: C.accent, fontSize: 13, background: "none", border: "none", textDecoration: "none", padding: "10px 0 18px", cursor: "pointer" }}>
               <IconExternalLink size={14} /> Fiche technique complète (PDF)
-            </a>
+            </button>
           )}
         </div>
+      </div>
+    );
+  }
+
+  // ---------- VUE PDF ----------
+  if (view === "pdf" && selected && selected.lienFiche) {
+    return (
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", background: C.bg }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 16px", paddingTop: "max(12px, env(safe-area-inset-top))", background: C.surface, borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+          <button onClick={() => setView("detail")} style={backBtnStyle}><IconArrowLeft size={18} /> Retour</button>
+          <a href={selected.lienFiche} target="_blank" rel="noreferrer" style={{ display: "flex", color: C.textSecondary }} aria-label="Ouvrir dans un autre onglet">
+            <IconExternalLink size={18} />
+          </a>
+        </div>
+        <iframe src={selected.lienFiche} title="Fiche technique" style={{ flex: 1, border: "none", width: "100%" }} />
       </div>
     );
   }
