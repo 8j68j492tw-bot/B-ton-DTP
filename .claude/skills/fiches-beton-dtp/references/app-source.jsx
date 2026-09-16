@@ -164,22 +164,15 @@ const PRODUCT_CATALOG = [
   { nom: "SikaGrout®-928", fabricant: "Sika Canada", eauMin: "4.0", eauMax: "4.8", tempsBrassage: "3-5", resistance: "Fluide — 24 MPa (1j) / 31 MPa (3j) / 45 MPa (7j) / 52 MPa (28j)", formatSac: "25 kg", rendement: "0.014 m³ par sac (consistance fluide)", tempsPrise: "Fluide — Initiale : 4h30 · Finale : 6h", tempsCure: "Composé de cure conforme ASTM C309 ou C1315", applications: "Équipements (compresseurs, génératrices), bases de pompes/moteurs, réservoirs, convoyeurs, boulons d'ancrage, armatures, panneaux préfabriqués, colonnes, poutres", notes: "Résistant aux sulfates, gel/dégel. Sans vibration. Épaisseur min. 25mm; au-delà de 152mm, ajouter du granulat. Ne pas mélanger plus que ce qui peut être placé en 30 min.", lienFiche: "https://usa.sika.com/dam/dms/us01/0/sikagrout-928.pdf", tempMin: "7", tempMax: "32" },
   { nom: "SikaGrout®-9400", fabricant: "Sika Canada", eauMin: "1.70", eauMax: "2.15", tempsBrassage: "5-6", resistance: "≥75 MPa (1j) / ≥120 MPa (7j) / ≥135 MPa (28j)", formatSac: "25 kg", rendement: "≈11.36 L par sac", tempsPrise: "9 heures", tempsCure: "Cure sous l'eau minimum 72h; couvertures isolantes par temps froid", applications: "Scellement de plaques d'assise d'éoliennes terrestres (post-tension), remplissage de vides de 25 à 600 mm, installations exigeant une excellente résistance à la fatigue", notes: "Ultra-haute résistance (>C100/115 EN206). Vie en pot ≥2h. Ne pas vibrer. Ne pas utiliser de malaxeur continu. Pré-mouiller le support 12h avant.", lienFiche: "https://can.sika.com/dms/getdocument.get/c45ab79c-6335-4bc1-986a-f3ff2518b778/sikagrout-9400.pdf", tempMin: "2", tempMax: "40" },
   { nom: "SikaEmaco® S 466", fabricant: "Sika Canada", eauMin: "1.5", eauMax: "2.3", tempsBrassage: "3-5", resistance: "17.2 MPa (1j) / 41.4 MPa (7j) / 55.2 MPa (28j)", formatSac: "25 kg", rendement: "12.2 L par sac", tempsPrise: "Initiale : 4h · Finale : 6h", tempsCure: "Composé de cure ASTM C309/C1315; cure humide recommandée si recouvrement prévu", applications: "Réparations structurales grand volume, colonnes préfabriquées, cavités, reprofilage de têtes de pieux — 25 mm à pleine profondeur", notes: "Micro-béton à retrait compensé, inhibiteur de corrosion intégré. Vie en pot ~90 min à 23°C. Homologué MTMD Québec et MTO. Ne pas mélanger de sacs partiels.", lienFiche: "https://can.sika.com/dam/dms/ca01/9/sikaemaco-s-466.pdf", tempMin: "4", tempMax: "32" },
+  { nom: "CPD® Non-Shrink Grout Pre-Mix UHP", fabricant: "CPD Construction Products", eauMin: "", eauMax: "2.5", tempsBrassage: "4-5", resistance: "Non trouvée — absente du sac et de la fiche technique numérisée", formatSac: "22.7 kg (50.04 lb)", rendement: "0.011 m³ (0.30 pi³) par sac, à la teneur en eau maximale", tempsPrise: "Non précisé sur le sac", tempsCure: "Min. 72 h; CIPADECK Cure & Seal ou toile de jute humide; garder le béton et l'acier environnant au-dessus de 4.5°C pendant au moins 72 h", applications: "Plaques de base de colonnes en acier structural, bases de machinerie, murs de maçonnerie armée, sièges d'appui, boulons d'ancrage, sièges d'appui de pont, éoliennes", notes: "Épaisseur min. 25 mm, max. 150 mm (au-delà, contacter un représentant CPD). Garder agité en tout temps dans le malaxeur (pales embouts de caoutchouc, min. 4-5 min). Pompable ou coulé. Limites de service : 4.5°C à 32°C. Ne jamais ajouter de matériau étranger sans consulter CPD. Durée de vie 1 an si stocké au sec.", lienFiche: "https://www.cpd.ca/wp-content/uploads/2025/09/NON-SHRINK-GROUT-UHP-PDS-SEP2025-FR.pdf", tempMin: "10", tempMax: "25" },
 ];
 
-// Produits ajoutés directement au registre béton (pas seulement au catalogue d'auto-complétion) —
-// demande explicite de l'utilisateur. Les produits KING obtiennent leur propre bannière de marque
+// Le registre béton se pré-remplit désormais avec la totalité de PRODUCT_CATALOG (même principe
+// que PUMP_CATALOG pour les pompes) — demande explicite de l'utilisateur après avoir migré vers un
+// nouvel hébergement (Vercel) et constaté que son registre personnel (stocké par téléphone/origine,
+// jamais dans le dépôt) ne le suivait pas. Les produits obtiennent leur propre bannière de marque
 // automatiquement (groupement par `fabricant`), sans logique dédiée nécessaire.
-const AUTO_ADDED_PRODUCT_NAMES = [
-  "KING In-Pakt Construction",
-  "KING In-Pakt Precision",
-  "King® Nordic",
-  "KING HS Cable",
-  "King® MS-Cable",
-  "SikaLevel®-250",
-  "SikaGrout®-928",
-  "SikaGrout®-9400",
-  "SikaEmaco® S 466",
-];
+const AUTO_ADDED_PRODUCT_NAMES = PRODUCT_CATALOG.map((p) => p.nom);
 
 function normalizeForMatch(s) {
   return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
