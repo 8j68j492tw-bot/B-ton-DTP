@@ -1052,11 +1052,13 @@ Règles :
     const reportChanges = verifState.lastReport && verifState.lastReport.changes ? verifState.lastReport.changes : [];
 
     return (
-      <div style={containerStyle}>
-        <div style={{ minHeight: "75vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "75vh", zIndex: 0, display: "flex", alignItems: "center", justifyContent: "center", background: C.bg }}>
           <img src={DTP_LOGO} alt="DTP Construction" style={{ width: 260, maxWidth: "78%", height: "auto" }} />
         </div>
-
+        <div style={{ ...containerStyle, background: "transparent", position: "relative", zIndex: 1 }}>
+          <div style={{ minHeight: "75vh" }} />
+          <div style={{ background: C.bg }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
           <div>
             <h1 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 21, margin: 0, letterSpacing: 0.4 }}>Registre béton</h1>
@@ -1194,7 +1196,9 @@ Règles :
             {isOnline ? "La sauvegarde a échoué." : "Hors ligne — tes changements seront sauvegardés dès que la connexion reviendra."}
           </p>
         )}
-      </div>
+          </div>
+        </div>
+      </>
     );
   }
 
