@@ -166,6 +166,21 @@ const PRODUCT_CATALOG = [
   { nom: "SikaEmaco® S 466", fabricant: "Sika Canada", eauMin: "1.5", eauMax: "2.3", tempsBrassage: "3-5", resistance: "17.2 MPa (1j) / 41.4 MPa (7j) / 55.2 MPa (28j)", formatSac: "25 kg", rendement: "12.2 L par sac", tempsPrise: "Initiale : 4h · Finale : 6h", tempsCure: "Composé de cure ASTM C309/C1315; cure humide recommandée si recouvrement prévu", applications: "Réparations structurales grand volume, colonnes préfabriquées, cavités, reprofilage de têtes de pieux — 25 mm à pleine profondeur", notes: "Micro-béton à retrait compensé, inhibiteur de corrosion intégré. Vie en pot ~90 min à 23°C. Homologué MTMD Québec et MTO. Ne pas mélanger de sacs partiels.", lienFiche: "https://can.sika.com/dam/dms/ca01/9/sikaemaco-s-466.pdf", tempMin: "4", tempMax: "32" },
 ];
 
+// Produits ajoutés directement au registre béton (pas seulement au catalogue d'auto-complétion) —
+// demande explicite de l'utilisateur. Les produits KING obtiennent leur propre bannière de marque
+// automatiquement (groupement par `fabricant`), sans logique dédiée nécessaire.
+const AUTO_ADDED_PRODUCT_NAMES = [
+  "KING In-Pakt Construction",
+  "KING In-Pakt Precision",
+  "King® Nordic",
+  "KING HS Cable",
+  "King® MS-Cable",
+  "SikaLevel®-250",
+  "SikaGrout®-928",
+  "SikaGrout®-9400",
+  "SikaEmaco® S 466",
+];
+
 function normalizeForMatch(s) {
   return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
 }
@@ -592,12 +607,25 @@ function App() {
 
   useEffect(() => {
     (async () => {
+      let current = [];
       try {
         const res = await window.storage.get(STORAGE_KEY);
-        if (res && res.value) setProducts(JSON.parse(res.value));
+        if (res && res.value) current = JSON.parse(res.value);
         loadOkRef.current = true;
       } catch (e) {
         loadOkRef.current = false;
+      }
+      const existingNames = new Set(current.map((p) => normalizeForMatch(p.nom)));
+      const toSeed = AUTO_ADDED_PRODUCT_NAMES
+        .map((name) => findCatalogMatch(name))
+        .filter((c) => c && !existingNames.has(normalizeForMatch(c.nom)))
+        .map((c) => ({ ...c, id: `catalog-auto-${normalizeForMatch(c.nom)}` }));
+      if (toSeed.length > 0) {
+        const merged = [...current, ...toSeed];
+        setProducts(merged);
+        window.storage.set(STORAGE_KEY, JSON.stringify(merged)).catch(() => {});
+      } else {
+        setProducts(current);
       }
       setLoaded(true);
     })();
