@@ -1,4 +1,4 @@
-const CACHE_NAME = "fiches-beton-v2";
+const CACHE_NAME = "fiches-beton-v3";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   "./fiches/sikacrete-08-scc.pdf",
@@ -9,6 +9,8 @@ const APP_SHELL = [
   "./fiches/sikagrout-112.pdf",
   "./fiches/sikagrout-300-pt.pdf",
   "./fiches/sikagrout-arctic-100.pdf",
+  "./fiches/bunker-b100-fiche.pdf",
+  "./fiches/bunker-b30-fiche.pdf",
 ];
 
 self.addEventListener("install", (event) => {
