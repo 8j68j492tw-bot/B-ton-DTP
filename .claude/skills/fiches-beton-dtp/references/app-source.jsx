@@ -493,7 +493,11 @@ function App() {
       try {
         const res = await window.storage.get(POMPES_KEY);
         if (res && res.value) setPumps(JSON.parse(res.value));
-      } catch (e) {}
+      } catch (e) {
+        const seeded = PUMP_CATALOG.map((p, i) => ({ ...p, id: `catalog-seed-${i}` }));
+        setPumps(seeded);
+        window.storage.set(POMPES_KEY, JSON.stringify(seeded)).catch(() => {});
+      }
     })();
   }, []);
 
