@@ -357,6 +357,57 @@ async function findBrandLogo(name, apiKey) {
   return callClaude(prompt, apiKey);
 }
 
+function PdfViewer({ url }) {
+  const containerRef = React.useRef(null);
+  const [status, setStatus] = React.useState("loading");
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setStatus("loading");
+    const container = containerRef.current;
+    if (container) container.innerHTML = "";
+
+    (async () => {
+      try {
+        if (!window.pdfjsLib) throw new Error("pdfjsLib indisponible");
+        const pdf = await window.pdfjsLib.getDocument(url).promise;
+        const containerWidth = (container && container.clientWidth) || 360;
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          if (cancelled) return;
+          const page = await pdf.getPage(pageNum);
+          const baseViewport = page.getViewport({ scale: 1 });
+          const scale = (containerWidth / baseViewport.width) * Math.min(window.devicePixelRatio || 1, 2);
+          const viewport = page.getViewport({ scale });
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.ceil(viewport.width);
+          canvas.height = Math.ceil(viewport.height);
+          canvas.style.width = "100%";
+          canvas.style.display = "block";
+          canvas.style.marginBottom = "10px";
+          canvas.style.background = "#fff";
+          if (cancelled) return;
+          if (container) container.appendChild(canvas);
+          const ctx = canvas.getContext("2d");
+          await page.render({ canvasContext: ctx, viewport }).promise;
+        }
+        if (!cancelled) setStatus("done");
+      } catch (e) {
+        if (!cancelled) setStatus("error");
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [url]);
+
+  return (
+    <div style={{ flex: 1, overflow: "auto", WebkitOverflowScrolling: "touch", background: C.surfaceAlt, padding: 10 }}>
+      {status === "loading" && <p style={{ textAlign: "center", color: C.textSecondary, fontSize: 13 }}>Chargement de la fiche…</p>}
+      {status === "error" && <p style={{ textAlign: "center", color: C.textSecondary, fontSize: 13 }}>Impossible d'afficher la fiche ici. Utilise le bouton en haut à droite pour l'ouvrir dans un autre onglet.</p>}
+      <div ref={containerRef} />
+    </div>
+  );
+}
+
 function TabPill({ label, active, onClick, neutral, colors, asset, onImgLoad, onImgError }) {
   const showImg = !neutral && asset && asset.logoUrl && asset.status !== "error";
   const bg = neutral ? (active ? C.text : C.surfaceAlt) : active ? colors.bg : hexToRgba(colors.bg, 0.18);
@@ -1484,6 +1535,7 @@ Règles :
 
   // ---------- VUE PDF (produits béton et pompes) ----------
   if (view === "pdf" && pdfUrl) {
+    const isLocalPdf = pdfUrl.startsWith("./fiches/");
     return (
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", background: C.bg }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 16px", paddingTop: "max(12px, env(safe-area-inset-top))", background: C.surface, borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
@@ -1492,7 +1544,7 @@ Règles :
             <IconExternalLink size={18} />
           </a>
         </div>
-        <iframe src={pdfUrl} title="Fiche technique" style={{ flex: 1, border: "none", width: "100%" }} />
+        {isLocalPdf ? <PdfViewer url={pdfUrl} /> : <iframe src={pdfUrl} title="Fiche technique" style={{ flex: 1, border: "none", width: "100%" }} />}
       </div>
     );
   }
