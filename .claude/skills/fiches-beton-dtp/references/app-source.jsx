@@ -301,7 +301,7 @@ function formatDate(iso) {
   return dt.toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" });
 }
 
-const DAILY_MESSAGES = [
+const WELCOME_MESSAGES = [
   { needsName: true, text: (n) => `Bonne coulée aujourd'hui, ${n} !` },
   { needsName: true, text: (n) => `${n}, une base solide, ça commence par une bonne attitude.` },
   { needsName: true, text: (n) => `${n}, prêt à bâtir du solide ?` },
@@ -324,13 +324,10 @@ const DAILY_MESSAGES = [
   { needsName: true, text: (n) => `${n}, on dit que t'es la fondation de l'équipe.` },
 ];
 
-function pickDailyMessage(name) {
+function pickRandomMessage(name) {
   const trimmedName = (name || "").trim();
-  const pool = trimmedName ? DAILY_MESSAGES : DAILY_MESSAGES.filter((m) => !m.needsName);
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((now - startOfYear) / 86400000);
-  const entry = pool[dayOfYear % pool.length];
+  const pool = trimmedName ? WELCOME_MESSAGES : WELCOME_MESSAGES.filter((m) => !m.needsName);
+  const entry = pool[Math.floor(Math.random() * pool.length)];
   return entry.text(trimmedName);
 }
 
@@ -564,6 +561,7 @@ function App() {
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [nameSettingsInput, setNameSettingsInput] = useState("");
+  const [sessionMessage, setSessionMessage] = useState("");
 
   const [pumps, setPumps] = useState([]);
   const [pumpForm, setPumpForm] = useState(emptyPump);
@@ -682,12 +680,15 @@ function App() {
 
   useEffect(() => {
     (async () => {
+      let loadedName = "";
       try {
         const res = await window.storage.get(USER_NAME_KEY);
-        setUserName(res && res.value ? res.value : "");
+        loadedName = res && res.value ? res.value : "";
+        setUserName(loadedName);
       } catch (e) {
         setShowNamePrompt(true);
       }
+      setSessionMessage(pickRandomMessage(loadedName));
       setNameChecked(true);
     })();
   }, []);
@@ -695,6 +696,7 @@ function App() {
   function saveUserName(name) {
     const trimmed = (name || "").trim();
     setUserName(trimmed);
+    setSessionMessage(pickRandomMessage(trimmed));
     setShowNamePrompt(false);
     window.storage.set(USER_NAME_KEY, trimmed).catch(() => {});
   }
@@ -1423,7 +1425,6 @@ Règles :
     const tabNames = rankedGroups.map((g) => g.name);
     const sections = activeBrand === "Tous" ? rankedGroups : rankedGroups.filter((g) => g.name === activeBrand);
     const reportChanges = verifState.lastReport && verifState.lastReport.changes ? verifState.lastReport.changes : [];
-    const todaysMessage = pickDailyMessage(userName);
 
     return (
       <>
@@ -1446,7 +1447,7 @@ Règles :
               {products.length === 0 ? "Aucune fiche enregistrée" : `${products.length} produit${products.length > 1 ? "s" : ""} au registre`}
               {!isOnline && " · hors ligne"}
             </p>
-            <p style={{ margin: "6px 0 0", fontSize: 12, fontStyle: "italic", color: C.accent }}>{todaysMessage}</p>
+            <p style={{ margin: "6px 0 0", fontSize: 12, fontStyle: "italic", color: C.accent }}>{sessionMessage}</p>
           </div>
           <button onClick={openNewForm} style={{ background: C.accent, color: C.onAccent, border: "none", borderRadius: 2, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} aria-label="Ajouter un produit">
             <IconPlus size={22} />
