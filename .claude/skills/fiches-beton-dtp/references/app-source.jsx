@@ -1058,7 +1058,7 @@ Règles :
         </div>
         <div style={{ ...containerStyle, background: "transparent", position: "relative", zIndex: 1 }}>
           <div style={{ minHeight: "75vh" }} />
-          <div style={{ background: C.bg }}>
+          <div style={{ background: hexToRgba(C.bg, 0.86), backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
           <div>
             <h1 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 21, margin: 0, letterSpacing: 0.4 }}>Registre béton</h1>
@@ -1081,7 +1081,7 @@ Règles :
         <div style={{ height: 3, background: C.accent, margin: "14px 0 4px" }} />
 
         {products.length > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.surface, border: `1px solid ${C.border}`, padding: "10px 12px", margin: "12px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: hexToRgba(C.surface, 0.88), backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: `1px solid ${C.border}`, padding: "10px 12px", margin: "12px 0" }}>
             <IconSearch size={16} color={C.textMuted} />
             <input
               type="text"
@@ -1099,7 +1099,7 @@ Règles :
         )}
 
         {reportChanges.length > 0 && (
-          <div style={{ background: C.surfaceAlt, border: `1px solid ${C.borderStrong}`, borderLeft: `4px solid ${C.info}`, padding: "10px 12px", margin: "10px 0" }}>
+          <div style={{ background: hexToRgba(C.surfaceAlt, 0.88), backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: `1px solid ${C.borderStrong}`, borderLeft: `4px solid ${C.info}`, padding: "10px 12px", margin: "10px 0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
               <p style={{ margin: 0, fontFamily: "'Oswald', sans-serif", fontSize: 13, fontWeight: 600 }}>
                 Vérification du {formatDate(verifState.lastReport.date)} — {reportChanges.length} fiche{reportChanges.length > 1 ? "s" : ""} mise{reportChanges.length > 1 ? "s" : ""} à jour
@@ -1159,7 +1159,7 @@ Règles :
                 const key = p.fabricant ? p.fabricant.trim().toLowerCase() : "";
                 const rowColor = p.fabricant ? (brandAssets[key] && brandAssets[key].bg ? brandAssets[key] : brandColor(p.fabricant)) : NO_BRAND_COLOR;
                 return (
-                  <button key={p.id} onClick={() => openDetail(p.id)} style={{ background: C.surface, border: `1px solid ${C.border}`, borderLeft: `4px solid ${rowColor.bg}`, borderRadius: 0, padding: "12px 14px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                  <button key={p.id} onClick={() => openDetail(p.id)} style={{ background: hexToRgba(C.surface, 0.88), backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: `1px solid ${C.border}`, borderLeft: `4px solid ${rowColor.bg}`, borderRadius: 0, padding: "12px 14px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 17, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nom || "Sans nom"}</div>
                       <div style={{ display: "flex", gap: 14, marginTop: 8, flexWrap: "wrap", rowGap: 4 }}>
