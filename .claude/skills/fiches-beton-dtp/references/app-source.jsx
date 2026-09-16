@@ -10,6 +10,7 @@ const USAGE_PRODUCTS_KEY = "usage-produits";
 const API_KEY_STORAGE = "fichesBetonApiKey";
 const CLAUDE_MODEL = "claude-sonnet-5";
 const POMPES_KEY = "pompes-beton";
+const USER_NAME_KEY = "nom-utilisateur";
 
 // ---------- Section Pompes : registre séparé, jamais mélangé avec le béton ----------
 const emptyPump = {
@@ -300,6 +301,39 @@ function formatDate(iso) {
   return dt.toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" });
 }
 
+const DAILY_MESSAGES = [
+  { needsName: true, text: (n) => `Bonne coulée aujourd'hui, ${n} !` },
+  { needsName: true, text: (n) => `${n}, une base solide, ça commence par une bonne attitude.` },
+  { needsName: true, text: (n) => `${n}, prêt à bâtir du solide ?` },
+  { needsName: false, text: () => "Un chantier sans café, c'est comme du béton sans eau : ça ne prend pas." },
+  { needsName: true, text: (n) => `${n}, garde ton sang-froid, comme un bon coulis par grand froid.` },
+  { needsName: true, text: (n) => `T'es increvable comme du SikaGrout, ${n}.` },
+  { needsName: false, text: () => "Zéro fissure dans le plan aujourd'hui." },
+  { needsName: true, text: (n) => `${n}, reste de niveau, comme une bonne dalle.` },
+  { needsName: true, text: (n) => `Pas de pression, ${n}... sauf celle du coulis.` },
+  { needsName: false, text: () => "Le béton a besoin de 28 jours. Toi, donne-toi au moins 5 minutes de pause." },
+  { needsName: true, text: (n) => `${n}, aujourd'hui, on bâtit sans se presser.` },
+  { needsName: true, text: (n) => `Une fondation solide, ça commence par toi, ${n}.` },
+  { needsName: false, text: () => "Prends ton temps de prise, le résultat en vaut la peine." },
+  { needsName: true, text: (n) => `${n}, t'as la cote comme un béton haute résistance.` },
+  { needsName: true, text: (n) => `Même un mur porteur a droit à une pause, ${n}.` },
+  { needsName: false, text: () => "Un chantier bien préparé vaut mieux qu'un coulis improvisé." },
+  { needsName: true, text: (n) => `${n}, chaque poche compte. Bonne journée !` },
+  { needsName: true, text: (n) => `Solide comme du béton, fiable comme toi, ${n}.` },
+  { needsName: false, text: () => "Pas de raccourci aujourd'hui, juste du solide." },
+  { needsName: true, text: (n) => `${n}, on dit que t'es la fondation de l'équipe.` },
+];
+
+function pickDailyMessage(name) {
+  const trimmedName = (name || "").trim();
+  const pool = trimmedName ? DAILY_MESSAGES : DAILY_MESSAGES.filter((m) => !m.needsName);
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now - startOfYear) / 86400000);
+  const entry = pool[dayOfYear % pool.length];
+  return entry.text(trimmedName);
+}
+
 // ---------- Appels à l'API Anthropic avec la clé personnelle ----------
 async function callClaude(prompt, apiKey) {
   if (!apiKey) throw new Error("missing-api-key");
@@ -525,6 +559,11 @@ function App() {
   const [openBrands, setOpenBrands] = useState({});
   const [usageProducts, setUsageProducts] = useState({});
   const [nomFocused, setNomFocused] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [nameChecked, setNameChecked] = useState(false);
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [nameSettingsInput, setNameSettingsInput] = useState("");
 
   const [pumps, setPumps] = useState([]);
   const [pumpForm, setPumpForm] = useState(emptyPump);
@@ -640,6 +679,25 @@ function App() {
       } catch (e) {}
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await window.storage.get(USER_NAME_KEY);
+        setUserName(res && res.value ? res.value : "");
+      } catch (e) {
+        setShowNamePrompt(true);
+      }
+      setNameChecked(true);
+    })();
+  }, []);
+
+  function saveUserName(name) {
+    const trimmed = (name || "").trim();
+    setUserName(trimmed);
+    setShowNamePrompt(false);
+    window.storage.set(USER_NAME_KEY, trimmed).catch(() => {});
+  }
 
   useEffect(() => {
     (async () => {
@@ -1132,8 +1190,37 @@ Règles :
     boxSizing: "border-box",
   };
 
-  if (!loaded) {
+  if (!loaded || !nameChecked) {
     return <div style={containerStyle}><p style={{ color: C.textSecondary }}>Chargement des fiches…</p></div>;
+  }
+
+  // ---------- INVITE AU PREMIER LANCEMENT (nom de l'utilisateur) ----------
+  if (showNamePrompt) {
+    return (
+      <div style={{ ...containerStyle, display: "flex", flexDirection: "column", justifyContent: "center", minHeight: "100vh" }}>
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <img src={DTP_LOGO} alt="DTP Construction" style={{ width: 140, height: "auto", margin: "0 auto 24px" }} />
+          <h1 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 22, margin: "0 0 8px" }}>Qui utilise l'application ?</h1>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.textSecondary }}>
+            Ça nous permet de personnaliser un peu l'expérience. Tu pourras changer ton nom plus tard dans Paramètres.
+          </p>
+        </div>
+        <Field label="Ton nom" value={nameInput} onChange={setNameInput} placeholder="ex. Félix" />
+        <button
+          onClick={() => saveUserName(nameInput)}
+          disabled={!nameInput.trim()}
+          style={{ background: nameInput.trim() ? C.accent : C.disabledBg, color: C.onAccent, border: "none", padding: "13px 0", fontFamily: "'Oswald', sans-serif", fontSize: 15, letterSpacing: 0.5, cursor: nameInput.trim() ? "pointer" : "not-allowed", marginTop: 8 }}
+        >
+          C'est parti
+        </button>
+        <button
+          onClick={() => saveUserName("")}
+          style={{ background: "none", border: "none", color: C.textSecondary, fontSize: 13, textDecoration: "underline", cursor: "pointer", marginTop: 14 }}
+        >
+          Passer cette étape
+        </button>
+      </div>
+    );
   }
 
   // ---------- VUE PARAMÈTRES ----------
@@ -1182,6 +1269,25 @@ Règles :
           </div>
           {importNote && <p style={{ fontSize: 12, color: C.info, margin: "10px 0 0" }}>{importNote}</p>}
           {importError && <p style={{ fontSize: 12, color: C.accent, margin: "10px 0 0" }}>{importError}</p>}
+        </div>
+
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "16px", marginTop: 14 }}>
+          <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 14, fontWeight: 600, margin: "0 0 8px" }}>Votre nom</p>
+          <p style={{ fontSize: 13, lineHeight: 1.6, color: C.textSecondary, margin: "0 0 14px" }}>
+            {userName ? <>Actuellement enregistré : <strong>{userName}</strong>.</> : "Aucun nom enregistré pour l'instant."} Utilisé pour personnaliser le message en haut du registre.
+          </p>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+            <div style={{ flex: 1 }}>
+              <Field label="Nom" value={nameSettingsInput} onChange={setNameSettingsInput} placeholder={userName || "ex. Félix"} />
+            </div>
+            <button
+              onClick={() => { if (!nameSettingsInput.trim()) return; saveUserName(nameSettingsInput); setNameSettingsInput(""); }}
+              disabled={!nameSettingsInput.trim()}
+              style={{ background: nameSettingsInput.trim() ? C.accent : C.disabledBg, color: C.onAccent, border: "none", padding: "10px 16px", fontSize: 13, cursor: nameSettingsInput.trim() ? "pointer" : "not-allowed", marginBottom: 14 }}
+            >
+              Enregistrer
+            </button>
+          </div>
         </div>
 
         {brandNames.length > 0 && (
@@ -1317,6 +1423,7 @@ Règles :
     const tabNames = rankedGroups.map((g) => g.name);
     const sections = activeBrand === "Tous" ? rankedGroups : rankedGroups.filter((g) => g.name === activeBrand);
     const reportChanges = verifState.lastReport && verifState.lastReport.changes ? verifState.lastReport.changes : [];
+    const todaysMessage = pickDailyMessage(userName);
 
     return (
       <>
@@ -1339,6 +1446,7 @@ Règles :
               {products.length === 0 ? "Aucune fiche enregistrée" : `${products.length} produit${products.length > 1 ? "s" : ""} au registre`}
               {!isOnline && " · hors ligne"}
             </p>
+            <p style={{ margin: "6px 0 0", fontSize: 12, fontStyle: "italic", color: C.accent }}>{todaysMessage}</p>
           </div>
           <button onClick={openNewForm} style={{ background: C.accent, color: C.onAccent, border: "none", borderRadius: 2, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} aria-label="Ajouter un produit">
             <IconPlus size={22} />
