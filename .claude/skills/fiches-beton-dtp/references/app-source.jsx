@@ -90,6 +90,34 @@ function catalogSuggestionsFor(query) {
   if (q.length < 2) return [];
   return PRODUCT_CATALOG.filter((p) => normalizeForMatch(p.nom).includes(q) || normalizeForMatch(p.fabricant).includes(q)).slice(0, 6);
 }
+function findCatalogMatch(nom) {
+  const norm = normalizeForMatch(nom);
+  if (!norm) return null;
+  return PRODUCT_CATALOG.find((c) => normalizeForMatch(c.nom) === norm) || null;
+}
+// Revérification quotidienne locale : compare chaque produit du registre à sa fiche du
+// catalogue intégré (si trouvée par nom exact normalisé) et signale les écarts. Gratuit,
+// hors ligne, aucun appel réseau/IA — contrairement à runVerification (voir plus haut).
+function runLocalCatalogVerification(list) {
+  const changes = [];
+  const updatedList = list.map((p) => {
+    const match = findCatalogMatch(p.nom);
+    if (!match) return p;
+    const diffs = [];
+    const updated = { ...p };
+    Object.keys(FIELD_LABELS).forEach((key) => {
+      const newVal = (match[key] || "").toString().trim();
+      const oldVal = (p[key] || "").toString().trim();
+      if (newVal && newVal !== oldVal) {
+        diffs.push({ champ: FIELD_LABELS[key], avant: oldVal || "(vide)", apres: newVal });
+        updated[key] = newVal;
+      }
+    });
+    if (diffs.length > 0) { changes.push({ id: p.id, nom: p.nom, diffs }); return updated; }
+    return p;
+  });
+  return { updatedList, changes };
+}
 
 const BRAND_PALETTE = [
   { bg: "#F2B705", text: "#3D2E00" },
@@ -718,7 +746,7 @@ function App() {
     setVerifying(true);
     try {
       const list = productsRef.current;
-      const { updatedList, changes } = await runVerification(list, apiKeyRef.current);
+      const { updatedList, changes } = runLocalCatalogVerification(list);
       if (changes.length > 0) await persist(updatedList);
       const today = todayStr();
       const newVerifState = { lastCheck: today, lastReport: { date: today, changes } };
@@ -730,19 +758,18 @@ function App() {
   }
 
   async function triggerCheck() {
-    if (checkRunningRef.current || !apiKey) return;
+    if (checkRunningRef.current) return;
     checkRunningRef.current = true;
     try { await performDailyCheck(); } finally { checkRunningRef.current = false; }
   }
 
   useEffect(() => {
-    if (!loaded || !verifLoaded || !isOnline || !apiKey) return;
+    if (!loaded || !verifLoaded) return;
     if (checkRunningRef.current || verifying) return;
     if (products.length === 0) return;
-    if (new Date().getHours() < 5) return;
     if (verifState.lastCheck === todayStr()) return;
     triggerCheck();
-  }, [loaded, verifLoaded, isOnline, apiKey, products.length, verifState.lastCheck]);
+  }, [loaded, verifLoaded, products.length, verifState.lastCheck]);
 
   function dismissReport() {
     const newState = { ...verifState, lastReport: null };
