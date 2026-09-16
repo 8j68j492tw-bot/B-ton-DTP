@@ -62,6 +62,35 @@ const FIELD_LABELS = {
   applications: "Applications", notes: "Notes", lienFiche: "Lien fiche", tempMin: "Température minimum", tempMax: "Température maximum",
 };
 
+// Catalogue local de produits connus (fiches techniques déjà validées) — sert uniquement à
+// suggérer/pré-remplir le formulaire d'ajout, aucune recherche réseau ni IA.
+const PRODUCT_CATALOG = [
+  { nom: "Sikacrete®-08 SCC", fabricant: "Sika Canada", eauMin: "2.5", eauMax: "2.7", tempsBrassage: "3", resistance: "11 MPa (24 h) / 39 MPa (3 jours) / 55 MPa (28 jours)", formatSac: "25 kg", rendement: "13 L par sac", tempsPrise: "Délai maximal d'utilisation : 25-30 min", tempsCure: "Mûrissement requis selon ACI 308 (toile de jute humide, pellicule de polyéthylène ou agent de cure) — durée exacte non précisée", applications: "Réparations structurales (stationnements, ponts, tunnels, barrages, balcons), remplissage de vides et cavités, épaisseurs de 25 à 450 mm", notes: "Pompable ou coulé. Homologué MTMD Québec. Malaxer à basse vitesse (400-500 tr/min). Ne pas surdoser en eau.", lienFiche: "https://can.sika.com/dam/dms/ca01/1/sikacrete-08-scc.pdf", tempMin: "", tempMax: "" },
+  { nom: "Sikacrete®-211 Flow PLUS", fabricant: "Sika Canada", eauMin: "2.1", eauMax: "2.7", tempsBrassage: "3", resistance: "18 MPa (1 jour) / 32 MPa (7 jours) / 45 MPa (28 jours) — consistance coulable, 2,7 L/sac", formatSac: "25 kg", rendement: "13 L par sac", tempsPrise: "Prise initiale : 160 min · Prise finale : 270 min", tempsCure: "Mûrissement requis selon ACI 308 (toile de jute humide, pellicule de polyéthylène ou agent de cure) — durée exacte non précisée", applications: "Réparations structurales pleine profondeur/partielles (stationnements, ponts, tunnels, barrages, balcons), remplissage de vides et cavités", notes: "Pompable ou coulé. Bonifié de 5% fumée de silice. Inhibiteur de corrosion intégré. Malaxer à basse vitesse (300-450 tr/min), max 3 min. Température minimum d'application : 7°C.", lienFiche: "https://can.sika.com/content/dam/dms/ca01/b/Sikacrete-211FlowPlus_pds_Fr.pdf", tempMin: "", tempMax: "" },
+  { nom: "Planitop® 11 [NA]", fabricant: "Mapei", eauMin: "2.35", eauMax: "2.7", tempsBrassage: "3", resistance: "17.2 MPa (1 jour) / 40.0 MPa (7 jours) / 45.0 MPa (28 jours)", formatSac: "30 kg", rendement: "0.014 m³ (~14 L) par sac", tempsPrise: "Béton — Initiale : ~8 h · Finale : ~10 h", tempsCure: "Coffrage min. 72 h. Cure humide (toile de jute + polyéthylène) ou agent ASTM C309.", applications: "Réparations de béton pleine profondeur, coulé ou pompé (tunnels, ponts, barrages, garages, balcons, colonnes)", notes: "Pré-étendu au gravier fin. N'est PAS autoplaçant — vibration parfois nécessaire. Ne pas utiliser pour l'ancrage.", lienFiche: "https://cdnmedia.mapei.com/docs/librariesprovider65/products-documents/1_3000172_planitop-11_en-ca_88c56b7b38494643ab1cd9b4a32a32f3.pdf", tempMin: "7", tempMax: "35" },
+  { nom: "Planitop® 11 SCC [NA]", fabricant: "Mapei", eauMin: "2.59", eauMax: "2.74", tempsBrassage: "3", resistance: "15.2 MPa (1 jour) / 37.9 MPa (7 jours) / 48.3 MPa (28 jours)", formatSac: "30 kg", rendement: "0.0141-0.0142 m³ (~14.1-14.2 L) par sac", tempsPrise: "Non précisé (étalement initial 600-750 mm, >380 mm à 30 min)", tempsCure: "Coffrage min. 72 h. Cure humide ou agent ASTM C309.", applications: "Réparations structurales pleine profondeur, autoplaçant, coulé ou pompé, forte concentration d'armature", notes: "Autoplaçant — NE PAS vibrer. Agrégats fins 9 mm. Compatible anodes galvaniques Mapeshield I.", lienFiche: "https://cdnmedia.mapei.com/docs/librariesprovider65/products-documents/1_3000173_planitop-11-scc_fr-ca_a1b67bcbe448463e8875ac6f3c255ff6.pdf", tempMin: "7", tempMax: "35" },
+  { nom: "Planigrout 712", fabricant: "Mapei", eauMin: "3.74", eauMax: "4.80", tempsBrassage: "3", resistance: "Fluide — 24.8 MPa (1j) / 55.2 MPa (7j) / 62.1 MPa (28j)", formatSac: "22.7 kg", rendement: "0.0122 m³ par sac (consistance fluide)", tempsPrise: "Fluide — Initiale <6 h · Finale <8 h", tempsCure: "Cure humide 72 h (toile de jute + polyéthylène ou agent de cure à base d'eau)", applications: "Coulis structural et d'ancrage prémélangé : béton préfabriqué, coulé en place ou précontraint, résidentiel/commercial/industriel/marine", notes: "3 consistances (plastique 3,74L / fluide 4,0L / liquide 4,80L par sac). Durée de vie du mélange: 1 h. Ne pas vibrer.", lienFiche: "https://cdnmedia.mapei.com/docs/librariesprovider65/products-documents/1_3000152_planigrout-712_fr-ca_7a803fa316b044db9a5ed2910e6a765c.pdf", tempMin: "21", tempMax: "21" },
+  { nom: "Planigrout 740", fabricant: "Mapei", eauMin: "4.50", eauMax: "4.50", tempsBrassage: "4", resistance: "24.1 MPa (1j) / 38.1 MPa (3j) / 50 MPa (7j) / 62.1 MPa (28j)", formatSac: "24.9 kg", rendement: "0.013 m³ par sac", tempsPrise: "Initiale <7 h · Finale <9 h", tempsCure: "72 h (n'est pas nécessaire sous l'eau); pas de produit de cure à base de solvant", applications: "Coulis par trémie sous l'eau (piles de ponts, pieux, murs de port), coulis structural et d'ancrage", notes: "Pompable. Contient des additifs antilessivage (utilisable en eau stagnante/vive). Jusqu'à 12,5 kg de gravillon 10mm pour >15cm. Durée de vie du mélange: 1 h.", lienFiche: "https://cdnmedia.mapei.com/docs/librariesprovider65/products-documents/1_3000253_planigrout-740_fr-ca_ea6505a350924bdfbb41ccd15dee0407.pdf", tempMin: "18", tempMax: "18" },
+  { nom: "Planigrout 755", fabricant: "Mapei", eauMin: "3.19", eauMax: "5.09", tempsBrassage: "4", resistance: "Fluide — 17.9 MPa (1j) / 41.4 MPa (3j) / 41.4 MPa (7j) / 55.2 MPa (28j)", formatSac: "22.7 kg", rendement: "0.0116-0.0133 m³ selon consistance", tempsPrise: "Fluide — Initiale 6 h · Finale 7.5 h", tempsCure: "72 h (toile de jute humide, polyéthylène, ou agent de cure — pas de produit à base de solvant)", applications: "Charge/stabilisation de plaques de base (colonnes, machinerie), ancrage de boulons/mains courantes, sous éléments préfabriqués/coulés/précontraints", notes: "3 consistances (pâte sèche/plastique/fluide). Ne pas vibrer. Ne pas mélanger plus que ce qui peut être appliqué en 1 h.", lienFiche: "https://cdnmedia.mapei.com/docs/librariesprovider10/products-documents/1_3000154_planigrout-755_en-us_be8bcc40884545adb5bb965e89d5ed22.pdf", tempMin: "5", tempMax: "35" },
+  { nom: "SikaGrout®-212", fabricant: "Sika Canada", eauMin: "", eauMax: "4.6", tempsBrassage: "3", resistance: "26 MPa (1 jour) / 42 MPa (3 jours) / 48 MPa (7 jours) / 56 MPa (28 jours)", formatSac: "25 kg", rendement: "13 L par sac", tempsPrise: "Initiale : 4 h à 5 h 30 · Finale : 5 à 7 h", tempsCure: "Humide 72 h entre 5-32°C, ou Sikacem Accelerator", applications: "Scellement structural : plaques de base, boulons d'ancrage, plaques d'appui, sièges de pont, panneaux préfabriqués", notes: "4,15 L max si ancrage de boulons. Mélanger basse vitesse (300-450 tr/min).", lienFiche: "https://can.sika.com/content/dam/dms/ca01/9/SikaGrout212_pds-fr.pdf", tempMin: "18", tempMax: "29" },
+  { nom: "SikaGrout®-212 HP", fabricant: "Sika Canada", eauMin: "", eauMax: "4.4", tempsBrassage: "3", resistance: "25 MPa (1 jour) / 42 MPa (3 jours) / 50 MPa (7 jours) / 62 MPa (28 jours)", formatSac: "25 kg", rendement: "13 L par sac", tempsPrise: "Finale : ~7 h", tempsCure: "Humide 72 h entre 5-32°C, ou Sikacem Accelerator", applications: "Coulis structural haute performance (fumée de silice) : socles de colonnes, machinerie, boulons d'ancrage, plaques d'appui, assises de ponts, éoliennes", notes: "Modifié à la fumée de silice, résistance accrue au gel/dégel. Mise en place max 45 min après malaxage.", lienFiche: "https://can.sika.com/content/dam/dms/ca01/a/SikaGrout212HP_pds-fr.pdf", tempMin: "18", tempMax: "29" },
+  { nom: "SikaGrout®-212 SR", fabricant: "Sika Canada", eauMin: "", eauMax: "4.3", tempsBrassage: "3", resistance: "22 MPa (1 jour) / 50 MPa (3 jours) / 57 MPa (7 jours) / 60 MPa (28 jours)", formatSac: "25 kg", rendement: "13 L par sac", tempsPrise: "Initiale : 4 h 30 · Finale : 7 h 30", tempsCure: "Humide 72 h entre 5-32°C", applications: "Coulis structural résistant aux sulfates : socles de colonnes, machinerie, boulons d'ancrage, plaques d'appui, panneaux muraux préfabriqués", notes: "Conforme CAN/CSA-A23.1 classe d'exposition S-1 (sulfates très intenses). Mise en place max 1 h après malaxage.", lienFiche: "https://can.sika.com/dms/getdocument.get/9cde8380-1d62-37e0-843b-416d603e2e39/SikaGrout212SR_pds-fr.pdf", tempMin: "18", tempMax: "29" },
+  { nom: "SikaGrout®-112", fabricant: "Sika Canada", eauMin: "2.3", eauMax: "4.0", tempsBrassage: "3", resistance: "Coulable — 21 MPa (1j) / 25 MPa (3j) / 40 MPa (7j) / 50 MPa (28j)", formatSac: "25 kg", rendement: "13.6 L par sac (consistance coulable)", tempsPrise: "Coulable — Initiale 5-8 h · Finale 7-10 h", tempsCure: "Humide 72 h entre 5-32°C", applications: "Applications générales : coulis pour assises de colonnes, ancrage de tiges/goujons/mains courantes, remplissage sous éléments préfabriqués", notes: "Tout usage, 3 consistances possibles (ferme 2,3L / plastique 3,1L / coulable 4,0L). Épaisseur max 102 mm.", lienFiche: "https://can.sika.com/content/dam/dms/ca01/e/SikaGrout-112_pds-fr.pdf", tempMin: "18", tempMax: "29" },
+  { nom: "SikaGrout®-300 PT", fabricant: "Sika Canada", eauMin: "5.45", eauMax: "6.15", tempsBrassage: "3-6", resistance: "25 MPa (1j) / 34 MPa (3j) / 48 MPa (7j) / 77 MPa (28j)", formatSac: "22.7 kg", rendement: "14 L par sac", tempsPrise: "Prise initiale : 3 à 12 h", tempsCure: "N/A sous gaine — voir restrictions", applications: "Remplissage de gaines de câbles post-tensionnés, ancrage/colmatage de vides dans armatures post-tensionnées, espaces restreints", notes: "Sans sable, sans ressuage, haute performance. Doit être placé dans les 60 min après malaxage. Malaxeur colloïdal ou haute vitesse (1800-2500 tr/min) recommandé.", lienFiche: "https://can.sika.com/content/dam/dms/ca01/c/SikaGrout300PT_pds-fr.pdf", tempMin: "18", tempMax: "29" },
+  { nom: "SikaGrout® Arctic-100", fabricant: "Sika Canada", eauMin: "", eauMax: "6.1", tempsBrassage: "3", resistance: "26-32 MPa à 24h selon température du substrat (-10 à 1°C)", formatSac: "25 kg", rendement: "14.2 L par sac", tempsPrise: "Prise initiale : 1 h 25 à 1 h 50 (à 20°C)", tempsCure: "Pieu immobile min. 24 h après injection", applications: "Ancrage de pieux et boulons dans le roc en conditions de pergélisol (Arctique canadien)", notes: "Coulis mouillé doit être entre 20-25°C avant/pendant mise en place. Si substrat > 4°C, utiliser SikaGrout-212 à la place. Mise en place max 30 min.", lienFiche: "https://can.sika.com/content/dam/dms/ca01/4/SikaGroutArctic100_pds-fr.pdf", tempMin: "20", tempMax: "25" },
+  { nom: "Sikadur®-42 Grout Pak LE", fabricant: "Sika Canada", eauMin: "", eauMax: "", tempsBrassage: "8", resistance: "16 MPa (24h) / 50 MPa (2j) / 70 MPa (3j) / 83 MPa (7j) / 92 MPa (28j)", formatSac: "Kit complet : composant A (10,24 kg) + B (3,57 kg) + C (6 sacs de 19,4 kg)", rendement: "56.6 L par ensemble complet", tempsPrise: "Vie en pot (A:B 3:1) : environ 2 h 20", tempsCure: "N/A — époxy tricomposant, pas d'eau utilisée", applications: "Calage de précision (bases d'éoliennes, socles de machines à impact/vibration, moteurs, compresseurs, pompes, presses), fixation de rails de grues/ponts roulants", notes: "Système époxy tricomposant sans solvant. Conditionner 23-30°C pendant 48h avant usage. Ne jamais diluer avec un solvant. Temps de brassage: A+B 3 min, puis +C environ 5 min de plus.", lienFiche: "", tempMin: "23", tempMax: "30" },
+  { nom: "Mapefill 130 WT [NA]", fabricant: "Mapei", eauMin: "2.1", eauMax: "2.4", tempsBrassage: "6-7", resistance: "70 MPa (1 jour à 20°C) / 115 MPa (7 jours) / 130 MPa (28 jours)", formatSac: "25 kg", rendement: "11.35 L par sac", tempsPrise: "Vie en pot (pot life) : environ 1 heure à 20°C", tempsCure: "Cure très soignée requise; surfaces exposées à l'air doivent être protégées de la dessiccation", applications: "Ancrage de précision (bases d'éoliennes, socles de machines à impact/vibration, moteurs, compresseurs, pompes, presses), fixation de rails de grues/ponts roulants, temps froid jusqu'à +2°C", notes: "Conditionner entre 23-30°C pendant 48h avant usage. Ne jamais ajouter d'eau une fois la prise commencée. Coulis extrêmement fluide, aucune vibration nécessaire. Mélange en 2 étapes (4-5 min puis 2 min après ajout du reste de l'eau).", lienFiche: "https://cdnmedia.mapei.com/docs/librariesprovider65/products-documents/1_01264_mapefill-130-wt_en-ca_7e3558cc3cc5494baf10d84ad3434a72.pdf", tempMin: "23", tempMax: "23" },
+];
+
+function normalizeForMatch(s) {
+  return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
+}
+function catalogSuggestionsFor(query) {
+  const q = normalizeForMatch(query);
+  if (q.length < 2) return [];
+  return PRODUCT_CATALOG.filter((p) => normalizeForMatch(p.nom).includes(q) || normalizeForMatch(p.fabricant).includes(q)).slice(0, 6);
+}
+
 const BRAND_PALETTE = [
   { bg: "#F2B705", text: "#3D2E00" },
   { bg: "#1B5E8C", text: "#E7F1FA" },
@@ -261,14 +290,15 @@ function BrandBanner({ name, displayName, asset, onImgLoad, onImgError }) {
   );
 }
 
-function Field({ label, value, onChange, placeholder, type = "text", unit }) {
+function Field({ label, value, onChange, placeholder, type = "text", unit, onFocus, onBlur, after }) {
   return (
-    <label style={{ display: "block", marginBottom: 14 }}>
+    <label style={{ display: "block", marginBottom: 14, position: "relative" }}>
       <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, color: C.textSecondary, display: "block", marginBottom: 4 }}>{label}</span>
       <div style={{ display: "flex", alignItems: "center", borderBottom: `1.5px solid ${C.borderStrong}`, paddingBottom: 6 }}>
-        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'IBM Plex Mono', monospace", fontSize: 15, color: C.text }} />
+        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} onFocus={onFocus} onBlur={onBlur} placeholder={placeholder} style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'IBM Plex Mono', monospace", fontSize: 15, color: C.text }} />
         {unit && <span style={{ fontSize: 12, color: C.textMuted, fontFamily: "'IBM Plex Sans', sans-serif" }}>{unit}</span>}
       </div>
+      {after}
     </label>
   );
 }
@@ -323,6 +353,7 @@ function App() {
   const [brandRenameError, setBrandRenameError] = useState("");
   const [usageBrands, setUsageBrands] = useState({});
   const [usageProducts, setUsageProducts] = useState({});
+  const [nomFocused, setNomFocused] = useState(false);
 
   const productsRef = useRef(products);
   const dirtyRef = useRef(false);
@@ -729,6 +760,11 @@ function App() {
   }
   function updateNom(val) { setForm((f) => ({ ...f, nom: val })); resetSearchUi(); }
   function updateField(key, val) { setForm((f) => ({ ...f, [key]: val })); }
+  function applyCatalogSuggestion(item) {
+    setForm({ ...emptyProduct, ...item });
+    setNomFocused(false);
+    resetSearchUi();
+  }
 
   function isDuplicateName(name, excludeId) {
     const norm = (name || "").trim().toLowerCase();
@@ -1215,6 +1251,17 @@ Règles :
 
   // ---------- VUE FORMULAIRE ----------
   const duplicate = isDuplicateName(form.nom, editingId);
+  const catalogSuggestions = editingId ? [] : catalogSuggestionsFor(form.nom);
+  const catalogDropdown = nomFocused && catalogSuggestions.length > 0 && (
+    <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: C.surface, border: `1px solid ${C.borderStrong}`, zIndex: 5, maxHeight: 240, overflowY: "auto" }}>
+      {catalogSuggestions.map((item) => (
+        <div key={item.nom} onMouseDown={() => applyCatalogSuggestion(item)} style={{ padding: "10px 12px", cursor: "pointer", borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 14, color: C.text }}>{item.nom}</div>
+          <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, color: C.textMuted }}>{item.fabricant}</div>
+        </div>
+      ))}
+    </div>
+  );
   return (
     <div style={containerStyle}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
@@ -1222,7 +1269,8 @@ Règles :
         <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, margin: 0 }}>{editingId ? "Modifier la fiche" : "Nouvelle fiche"}</h2>
       </div>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "16px" }}>
-        <Field label="Nom du produit" value={form.nom} onChange={updateNom} placeholder="ex. Sikagrout 212" />
+        <Field label="Nom du produit" value={form.nom} onChange={updateNom} placeholder="ex. Sikagrout 212"
+          onFocus={() => setNomFocused(true)} onBlur={() => setNomFocused(false)} after={catalogDropdown} />
         {duplicate && (
           <p style={{ fontSize: 12, color: C.accent, margin: "-8px 0 14px" }}>
             Un produit nommé « {form.nom.trim()} » existe déjà dans ton registre.
