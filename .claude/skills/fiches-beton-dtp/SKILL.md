@@ -14,6 +14,7 @@ Application PWA autonome (hors de Claude) qui sert de registre de fiches techniq
 - Registre de produits de béton/coulis/mortier : nom, fabricant, eau min/max (L), temps de brassage (min), **température après malaxage** min/max (°C — voir note importante ci-dessous), résistance à la compression, format du sac, rendement, temps de prise, temps de cure, applications, notes, lien vers la fiche technique PDF.
 - Devanture (liste) : nom + eau + brassage + température en aperçu rapide, avec bordure et bannière colorées par fabricant.
 - Onglets de fabricant en haut, classés par fréquence d'utilisation (plus un onglet/produit est consulté, plus il remonte) — sauf "Sans fabricant" (ou son nom renommé) qui reste toujours en dernier.
+- Chaque bannière de marque (`BrandBanner`) a un chevron à droite pour replier/déplier ses produits sans cacher la bannière elle-même — état `collapsedBrands` (clé = nom de marque normalisé), non persisté (repart déplié à chaque chargement). Demande explicite de l'utilisateur.
 - Barre de recherche (filtre par nom ou fabricant).
 - Détection de doublons : impossible d'ajouter ou d'importer deux fois un produit du même nom (comparaison insensible à la casse/espaces).
 - Export/import JSON du registre (nécessaire car Safari et l'app installée sur l'écran d'accueil ont des stockages séparés sur iOS — voir Pièges connus).

@@ -301,19 +301,22 @@ function TabPill({ label, active, onClick, neutral, colors, asset, onImgLoad, on
   );
 }
 
-function BrandBanner({ name, displayName, asset, onImgLoad, onImgError }) {
+function BrandBanner({ name, displayName, asset, onImgLoad, onImgError, collapsed, onToggle }) {
   const c = name === NO_BRAND_LABEL ? NO_BRAND_COLOR : brandColor(name);
   const showImg = name !== NO_BRAND_LABEL && asset && asset.logoUrl && asset.status !== "error";
   const bg = asset && asset.bg ? asset.bg : c.bg;
   const text = asset && asset.text ? asset.text : c.text;
   const label = displayName || name;
   return (
-    <div style={{ background: bg, color: text, padding: "8px 12px", marginTop: 16, marginBottom: 8, display: "flex", alignItems: "center" }}>
+    <div style={{ background: bg, color: text, padding: "8px 12px", marginTop: 16, marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       {showImg ? (
         <img src={asset.logoUrl} alt={label} crossOrigin="anonymous" onLoad={(e) => onImgLoad(name, e.target)} onError={() => onImgError(name)} style={{ height: 26, maxWidth: 160, width: "auto", objectFit: "contain", display: "block" }} />
       ) : (
         <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: 0.4 }}>{label}</span>
       )}
+      <button onClick={onToggle} aria-label={collapsed ? `Afficher les produits ${label}` : `Cacher les produits ${label}`} style={{ background: "none", border: "none", color: text, cursor: "pointer", padding: 4, display: "flex", flexShrink: 0 }}>
+        <IconChevronRight size={18} style={{ transform: collapsed ? "rotate(0deg)" : "rotate(90deg)", transition: "transform 0.15s ease" }} />
+      </button>
     </div>
   );
 }
@@ -380,6 +383,7 @@ function App() {
   const [brandNameInputs, setBrandNameInputs] = useState({});
   const [brandRenameError, setBrandRenameError] = useState("");
   const [usageBrands, setUsageBrands] = useState({});
+  const [collapsedBrands, setCollapsedBrands] = useState({});
   const [usageProducts, setUsageProducts] = useState({});
   const [nomFocused, setNomFocused] = useState(false);
 
@@ -541,6 +545,11 @@ function App() {
     usageProductsRef.current = next;
     setUsageProducts(next);
     window.storage.set(USAGE_PRODUCTS_KEY, JSON.stringify(next)).catch(() => {});
+  }
+
+  function toggleBrandCollapsed(name) {
+    const key = name.trim().toLowerCase();
+    setCollapsedBrands((c) => ({ ...c, [key]: !c[key] }));
   }
 
   function renameBrand(oldName) {
@@ -1151,11 +1160,15 @@ Règles :
           </div>
         )}
 
-        {sections.map((group) => (
+        {sections.map((group) => {
+          const brandKey = group.name.trim().toLowerCase();
+          const collapsed = !!collapsedBrands[brandKey];
+          return (
           <div key={group.name}>
             {(activeBrand === "Tous" || tabNames.length > 1) && (
-              <BrandBanner name={group.name} displayName={group.name === NO_BRAND_LABEL ? noBrandLabel : group.name} asset={group.name === NO_BRAND_LABEL ? null : brandAssets[group.name.trim().toLowerCase()]} onImgLoad={handleLogoLoad} onImgError={handleLogoError} />
+              <BrandBanner name={group.name} displayName={group.name === NO_BRAND_LABEL ? noBrandLabel : group.name} asset={group.name === NO_BRAND_LABEL ? null : brandAssets[brandKey]} onImgLoad={handleLogoLoad} onImgError={handleLogoError} collapsed={collapsed} onToggle={() => toggleBrandCollapsed(group.name)} />
             )}
+            {!collapsed && (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {group.items.map((p) => {
                 const key = p.fabricant ? p.fabricant.trim().toLowerCase() : "";
@@ -1190,8 +1203,10 @@ Règles :
                 );
               })}
             </div>
+            )}
           </div>
-        ))}
+          );
+        })}
 
         {saveError && (
           <p style={{ fontSize: 12, color: isOnline ? C.accent : C.info, marginTop: 16 }}>
