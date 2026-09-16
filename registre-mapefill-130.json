@@ -1,0 +1,23 @@
+{
+  "exportedAt": "2026-09-16T00:00:00.000Z",
+  "produits": [
+    {
+      "nom": "Mapefill 130 WT [NA]",
+      "fabricant": "Mapei",
+      "eauMin": "2.1",
+      "eauMax": "2.4",
+      "tempsBrassage": "6-7",
+      "tempMin": "23",
+      "tempMax": "23",
+      "resistance": "70 MPa (1 jour à 20°C) / 115 MPa (7 jours) / 130 MPa (28 jours)",
+      "formatSac": "25 kg",
+      "rendement": "11.35 L par sac",
+      "tempsPrise": "Vie en pot (pot life) : environ 1 heure à 20°C",
+      "tempsCure": "Cure très soignée requise; surfaces exposées à l'air doivent être protégées de la dessiccation",
+      "applications": "Ancrage de précision (bases d'éoliennes, socles de machines à impact/vibration, moteurs, compresseurs, pompes, presses), fixation de rails de grues/ponts roulants, temps froid jusqu'à +2°C",
+      "notes": "Conditionner entre 23-30°C pendant 48h avant usage. Ne jamais ajouter d'eau une fois la prise commencée. Coulis extrêmement fluide, aucune vibration nécessaire. Mélange en 2 étapes (4-5 min puis 2 min après ajout du reste de l'eau).",
+      "lienFiche": "https://cdnmedia.mapei.com/docs/librariesprovider65/products-documents/1_01264_mapefill-130-wt_en-ca_7e3558cc3cc5494baf10d84ad3434a72.pdf",
+      "id": "1789518369616"
+    }
+  ]
+}
