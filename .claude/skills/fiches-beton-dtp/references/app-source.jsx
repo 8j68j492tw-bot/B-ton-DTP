@@ -382,6 +382,7 @@ function App() {
   const [usageBrands, setUsageBrands] = useState({});
   const [usageProducts, setUsageProducts] = useState({});
   const [nomFocused, setNomFocused] = useState(false);
+  const [stickyBarStuck, setStickyBarStuck] = useState(false);
 
   const productsRef = useRef(products);
   const dirtyRef = useRef(false);
@@ -393,10 +394,19 @@ function App() {
   const usageProductsRef = useRef(usageProducts);
   const apiKeyRef = useRef(apiKey);
   const importInputRef = useRef(null);
+  const stickyBarSentinelRef = useRef(null);
 
   useEffect(() => { productsRef.current = products; }, [products]);
   useEffect(() => { brandAssetsRef.current = brandAssets; }, [brandAssets]);
   useEffect(() => { apiKeyRef.current = apiKey; }, [apiKey]);
+
+  useEffect(() => {
+    const node = stickyBarSentinelRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => setStickyBarStuck(!entry.isIntersecting), { threshold: 0 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [view]);
 
   useEffect(() => {
     (async () => {
@@ -1059,6 +1069,8 @@ Règles :
         <div style={{ ...containerStyle, background: "transparent", position: "relative", zIndex: 1 }}>
           <div style={{ minHeight: "75vh" }} />
           <div style={{ background: hexToRgba(C.bg, 0.86), backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
+        <div ref={stickyBarSentinelRef} style={{ height: 1 }} />
+        <div style={{ position: "sticky", top: 0, zIndex: 2, background: hexToRgba(C.bg, 0.92), backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", paddingTop: stickyBarStuck ? "env(safe-area-inset-top)" : 0, borderBottom: stickyBarStuck ? `1px solid ${C.border}` : "none" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
           <div>
             <h1 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 21, margin: 0, letterSpacing: 0.4 }}>Registre béton</h1>
@@ -1097,6 +1109,7 @@ Règles :
             )}
           </div>
         )}
+        </div>
 
         {reportChanges.length > 0 && (
           <div style={{ background: hexToRgba(C.surfaceAlt, 0.88), backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: `1px solid ${C.borderStrong}`, borderLeft: `4px solid ${C.info}`, padding: "10px 12px", margin: "10px 0" }}>
