@@ -9,6 +9,57 @@ const USAGE_BRANDS_KEY = "usage-marques";
 const USAGE_PRODUCTS_KEY = "usage-produits";
 const API_KEY_STORAGE = "fichesBetonApiKey";
 const CLAUDE_MODEL = "claude-sonnet-5";
+const POMPES_KEY = "pompes-beton";
+
+// ---------- Section Pompes : registre séparé, jamais mélangé avec le béton ----------
+const emptyPump = {
+  nom: "", fabricant: "", debit: "", pression: "", puissance: "",
+  granulometrieMax: "", distanceHorizontale: "", distanceVerticale: "",
+  capaciteTremie: "", poids: "", dimensions: "", applications: "", notes: "", lienFiche: "",
+  color: "", photoUrl: "",
+};
+
+const PUMP_FIELD_LABELS = {
+  fabricant: "Fabricant", debit: "Débit", pression: "Pression", puissance: "Puissance moteur",
+  granulometrieMax: "Granulométrie maximum", distanceHorizontale: "Distance de pompage horizontale",
+  distanceVerticale: "Distance de pompage verticale", capaciteTremie: "Capacité de la trémie",
+  poids: "Poids", dimensions: "Dimensions", applications: "Applications", notes: "Notes", lienFiche: "Lien fiche",
+};
+
+// Fiches de départ — specs officielles Bunker Teksped (fabricant italien, pompes/machines à
+// projeter pour béton, coulis et mortiers).
+const PUMP_CATALOG = [
+  {
+    nom: "Bunker B-100", fabricant: "Bunker Teksped",
+    debit: "Jusqu'à 250 L/min (170 L/min avec kit rotor/stator 2L8)",
+    pression: "12 bar (25 bar avec kit 2L8)",
+    puissance: "Centrale hydraulique : moteur diesel 37 kW ou moteur électrique 18,5 kW",
+    granulometrieMax: "25 mm (16 mm avec kit 2L8)",
+    distanceHorizontale: "45 m (60 m avec kit 2L8)",
+    distanceVerticale: "15 m (30 m avec kit 2L8)",
+    capaciteTremie: "180 L",
+    poids: "420 kg (495 kg avec moteur diesel)",
+    dimensions: "1700 x 700 x 1020 mm (L x l x h)",
+    applications: "Béton projeté, béton autoplaçant, micro-béton, injection de micropieux et ancrages, coulis, mortiers",
+    notes: "Pompe volumétrique sans soupapes (rotor excentrique acier + stator caoutchouc résistant à l'abrasion). Régulation hydraulique progressive du débit et de la pression. Classe de consistance S4, fluide, slump 16-20 cm.",
+    lienFiche: "", color: "", photoUrl: "",
+  },
+  {
+    nom: "Bunker B-30", fabricant: "Bunker Teksped",
+    debit: "6 à 65 L/min selon le stator utilisé (30 L/min théorique)",
+    pression: "30 bar maximum (2,5 bar minimum d'eau nécessaire)",
+    puissance: "Moteur pompe 5,50 kW · moteur pompe à eau 0,33 kW · moteur roue d'alimentation 0,55 kW · compresseur 0,9 kW (250 L/min, 6 bar)",
+    granulometrieMax: "",
+    distanceHorizontale: "40 m (tuyau Ø25)",
+    distanceVerticale: "20 m (tuyau Ø25)",
+    capaciteTremie: "150 L (200 L avec extension de trémie)",
+    poids: "258 kg au total (machine 145 kg, pompe de malaxage 88 kg, compresseur 25 kg)",
+    dimensions: "1150 x 730 x 1450 mm (L x l x h)",
+    applications: "Enduits ciment/chaux, plâtre, anhydrite, enduits isolants, mortiers de façade et pour armatures, mortiers de rejointoiement, colle à carrelage, chapes liquides ciment/anhydrite",
+    notes: "Machine à projeter compacte, démontable en plusieurs unités sans outils pour le nettoyage/l'entretien. Chargement manuel (sacs) ou automatique (silo). Hauteur de chargement 910 mm (1020 mm avec extension trémie).",
+    lienFiche: "", color: "", photoUrl: "",
+  },
+];
 
 const DTP_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAggAAADVCAMAAAAFHfiJAAAAwFBMVEXnJC/mHiXmHSLkHSPnHCTlHCTkHCXkHCTkHCLpGiTnGyTmGyXqGCTnFyLlGyTlFyC/VFnPR1HYN0C+OkLhJC3iHiPeIijNJS5laW5sV1qKR0pYQ0ZsMTZDMTQuKy0gICPiHSbjHSTjHCTjHSLjGSHgHCLfFh99Gh8YFhkWGh0XFRgXFBgXFBcXFBYWFBcVFBcVFBYWExYUFxoUExYUExUQFRjPEhwUEhUSERQRDxIODxINDA8JDxIGDhEHCw4FBwp140QiAABAgklEQVR42u1dCXvayLIVAgntAm08BBKtpTVG4aLBvlx2/P//1auSWL2FljNxMqG+mUzGYC3dp6tPVdfChYPN9Okuf7asRgMuHK3uA/GnS7EKuNHiPg53WTxw90G4CyLhDoS7lHIHwl3uQLjLHQh3uQPhLncg3OUOhLvcgfBDpCiKOxDuki82q9WiuAPhj4fBNOj3HzaL/A6EPxoGefB/IP3gYbPM70D4d1OAvLiQt2BQSjDePBV3IPyLcbC5ksUFDB7OMEAZ/Hfzr6SNdyCUOFgFRwnxj4cSCX8X+aU2OCIhXK/yOxD+rQrherJHS/zhcrV5BYOSK4T7RV7cgfCvBEIfCUCIElRAAG0wDt/EwZE1Fncg/EuBMN6s1qvnsARCsVqNryY/eBoNLjeI0ebftUHcgXAGwghWeb4a4d82mxfTvtw8rTaLcHAFhX+TUrgDoQICzvBoVSBtRN1wCYM+TPkSLAX4Z7UM++cPwtUmvwPh3wqEZbnaL2DQn21WR4OxeNosw0vWuFn8W2zJOxDOQAhhwvMX9kNQbJ4u57ooNstgcFILwBr/JVThDoRLIDysNqMrn0G+eXo5z/nTZjMeXFKFf4Wv8Q6EEgjrEgjXFHEwGr+GQfntfHn5xcHTv8HXeAfCGQijK4oYblbvnjCBcXEBhQGwxt8eCncgnLeGCwkfvjO311Doh6vVb25L3oFQGgNP/SuG+HCDNYBQCIMTFkb739vXeAcCzujzJTUIRpvbYpGKfL1ZnKzJ4Pf2Nf7xQCgeLnU8KnmG4JMif1o/BRcGxO9LFbi7Nhidt4VgtFoXbMu6eNqcoRAuf1tbkvuzYbDeXJwwBuGizpLOAQpHF1M/XPymVIH7w2Fw1gaDh8265nLOF2cPRP83PaH+c4GQLy9g0A/Hn5q//MLHhCfUxR0Iv4s6KDbjszYI16vPhicXBZDO/u/rdv4zgVA8rRcndRAE6x/C9mGrWT0croqsMb8D4ZeHweYcVwDU4IcZfUWxABOiX+01v5kBwf2JMHg6wmAQjn4wtbuwJoPl7+R25v48GJw2BXQe/XhnINzhEAM/GP9GvkbuT4PB7ASDAM+V/oklC9bkuIpu/I18jX8SEPILGMBq/Qf3cDAmV6U12Q8Xvwlr5P4kGBTB+VTgn/X6FKU1WUHh6bdgjdyfA4MjieuHP+WcEKFQ6Z+g+A2owg8Bwmz6QyQHmf5TMPg76B+D0Nc/yQdcFOtNdUo9Xv0RQJgt158TTEDeV7KZzE6C2PghM7Y4aYNBsPyZ9K0oNqsHxMJg+QcAYbZ8CD8pp1zkQbjbXsjmeYnAmHxKsxaLY2Y7UIOfvV8XxXINWm78J2iExaNvfVa6J/nrr7+Gvu93OsEIgTHazefr7X62WEzyWb3ne1gNDqfMm9nDVwjueJdQzh/yH3ftXwcIk/3Aygz9M2KaZnYQU240Wo0G8RyvhwCxERLBYD6f756Xi1mN9y42z7+A7J/O7RB+6HWn560UVstRlsvlYjKZ5PlPBMJs7nuJK7TcGtI8Cn8UISmFJpKR6pqZASg8x7L+sn3QDvPtfrFkBEOxDvq/gAyWD/896IP54Ededzt/KY+Pj2OQx+129/z8tEBE5LPZPw6E6Xpkp2K7LbRriHCU009EEPyz/FQUGzGNBcPMZFnkLLszHDyO5nvAwux2AjPqdH8BsYejJT70t31g/8jrWr1K7EvpoPhBMOz35wCKHSjT1SIvZv8oEIAhOLT9j0osinE7pqZKHACDP0AsTKa3kb78GTaurxfT8XeTEpjbofNDLyyDNFBAnbbwf1q6oqRpmrkOaFKrB6gYDvvj0eN+vZp9AIbPAmG6D7qm2/7nReD5hColGDrDYLTdr2+BAigE3zOaCf/FYtqVQnhazO2Uaj/46sZBVBCREPyPrMmwwWaZrKY6VyrTYQgLaLOcFP8MECbbIYnJTwCCIUQkkloxoWkGigH0wnY1+S4UcmSykeuqXypKzPm7/xzWjaPLmvBjr08OIh6QAH8TDUNSNBn/L0lNUzMJKIdhPxzv3hm1TwJhBgzB5KOfAIQY39N1JUUFzSeZjg325e67B/6LuW9I7XZEvlJEl1rBuvSZLsY+aUbxD74+jo8EIigggiAlSLukRBKEKGobsiwQyjdSVed63U4QbtdvQYH7tEJwEl5p/0yJ43a7pWX/czoDhMKHG9cmsIz2V4vYkvz57PA8XbMus/7MeIltYFliTDPP6fqj3Xryg4FQrEOb8pL8s4c2clVN1nWn0x/tZ8WHCkGLvhwIkWkN9pPjulHiL3sOQdYkKXVsP9y+Sur7HBAmOzAZNFf46a9E3CRRVZpydjBfTT9QCF2zEX8tDOK2SDthGeAO66arN77sSRLYPTSNEIPr9ufL6Q8EAr5YSjQ3+dmvZKiCxEuqrsbU8kfb90gj2GocTb5YHciEOoN9Xq2bwDPIlz2KJKGjriW4qd7rhNvJjwPCdOs76ZeutpiapDN4fjspoViNbI24X4oDgWqE2lXb5dly3JEIkb56q4pjlXr2aH21PXwGCLPVqGsm4le+k+q2NLU3HO3f2h6+7YacFylfOuhqApvyoHImTTehRWPS/nIguG0jSq3+bvaDgDABo9j8Ws2rwuZATc4fvaETivWoYxIif61GkJL46EyazX2OxMmXA0Fou7GcmFZ/O/shQJgtRzbxvnbBEVUlSUJxe8hfM9m+lWnkax+wmVBnuPt22Km6mRp9+c7QVmQX+L2bdfv7/EcAAb121P1aMz1uG21BcGlmD9b562PRVvTVXgTFy7rBZlrZjkGPytHXm7OgEuK2rHjUflwWP0IjPPpEdtWvfy8DkKB2xuvpCyYbWOmXP1ukNPyDBl6MO1SR6S8AhBKhqku94fq/nwdC/hxYuiyov8JbCapMgScUL5xJXPzlT+bqVlgphOk6hPFS3fjXAIKqtiP9qKw+A4RiHXaoLEotlvkSGkJcSRtPTpvNZnxSlfW9UlFb1pqU869YcL4HhSAK35NPgO+Gawtt/qQQZlvfi2NDFn4NIAiqohhAXyafBQIyhPR20xHmWxV0I9O5StQsy9I05XnTNFOJ55vNKJH4pKbRryqJpPaC+QUSQBE3XCJ+T5BAtxm1tcAnivL9S4t4LJhaYbVloZczIzAKtd5Pou7ppCpqNpPETeCN1ch13diop5QFQyXp0aD5BBAWY5/yt6u5yG2rumd3On9V4nc6nW7Xtns9i+NopqY0iVRNq73RUF7zLhQdjPvI1hvRDeFysG+z3hVPem+4sigSj3ZGVfkUWDgcretzUTU5JhfnzrKiqgg0VZaNdn3SIfKfB0KpeZlM4qYI/Hk0qsLVd2OMYh+NRrOg7w/trm1xmp5qam1HPE3k2PPPhvFy7BNqfl/SVE9UZiDIUmreImnGHbzL5fkXqcsP3ERvCa1SGi2eb6QZRvumUuK2tFZ9JKim1T+a3XWBsHj0VYXhCVqKkHjD+WY1mU0m8O9ys9ms16vlcv28241GD/2h37Uc0xSaNYdKkhK9Fx4tB7DZO7dJlySUcX5iXu7Z3dsu74+rJQeUqpfWUwjwdDoB3VnFI5YRilUOAMd5WZZkqRrV1DRqZp1cCVx9hpCx3F7RXAr8+RRIMisbbWI6Uz6ZLFfL/X4+Gvi2laUNV1CFhHXtCALsmtqFSliMQd+MvyejOTAdViIfxY4///61y+sfLfXp1udoLW5qyGKU2oNtfuxNWkzXZRz0YBAMOx3bchp6mrSabsSu2TLO/yQQFo8dYC0M7yXIkuPP3wmdnBWzPF+snuejfseiJu9KdVijQEw7PLOE5S2ymvuixErkI8UebZa3yeFgB6mirib1+IGaOsPnyTkv4r/Fvkxp2O/m4/HjYOjbXJrwksgMBNQIn9saQCF0zYgF4BEY1Bdc7k04ABb2AAVH56Vayi6igLUF03vsQCEkMpsXOgarazuZsQ6YY6p1bCJQdToAfHV1v7xMn/o2mQHS9tt56NteKsuENTBEMT+5NRTLcceT3ZgFCJS8qxAuLpwDFIaWydM6rmGeZN3RumB5j8dO3JQkRiCY3XDDlrWNlCUV6gGh6Zo9fzt5H2Oz2Xo/sHtEc1mBoPL2w6eshukm7GZS5DKcnwipFWxvGD2Awq7fzVpqjbMZXvWsy3OUG2LxgekQmWn8DKlpdMaLgnHAAssktbYGIXHVTvgxvKeTzdj2NDlhVqGfNB8xSyNuM5ktRL1BIVRQmO0BCc3EbbJSK1U9nfTd+h5+I44FBq4oES3JrGDPmIM5m/vEiOtsd7FsUO4jhXA4aV0HPZM5PNPlPudZLNYjm/Glmpk1uHX0KiS0FJc5gUoVqM+wWKfr0GY9llJFqjESEczDDbs1bcd23IKd6Pv73WJruypjzIto9gbbzwBhsvMbJiP6iH9SQjcgYTfoUY0ZCGA/ZUdH3k1A2PkcY0xxjBGIwfYb44CBBk1run2IwPm7yXdvAayNEkarQbgcLa6OQoCFxDMBXEytNyJHPuRWPU1i3fJcVebt8e14WwPTaTHuPwJJbVaFMEOqqNb0Kjazzg0KAYGQijLTPUTFuzidqQGECfpGGByAkaE0ZJaVitZW30oFmVkjSHLv4WYg5M/wHm6L7R5G5vS3E7YBw7fJ6sR2RioqoP4uv4WF2HzMYv2oEp/aFzYWOxDKnZXFax6rku4cMjxuVwldwgwEkSRyb/k0u/UeoW26rBadYHbCDWP1ncXcd2gtIEgK5kTccD+Mi01VBu1mKInmXJJQrg5DcCiLJSRIrsamEKpAecVlB8LFccMt69RsGYxbQ3pxhM+wBRHC1zEd3UQBPnfDC4H947gaE6+GSbl0h3A1FEJXabCEhApuervJcA6Qtky3jka4FQiz5dgmsqKyAUEAdcralQOpotGu40xqUT7rPN5QkK0MdohUFj4aoWNn8oko5lIhKB6L2nZN5tGDN7NN1kVERIatAY/NxJbIhANRpRyzQnhajmyMVRTqAAEMvFveBydFd0l083sIQiL7j4tP5DWASdzJWFcRuzqFveEv5ngRV4j5m8nibD5kzYpsETnrsuo2UAgh2MJqHevRcHl7vvz+Esq3g156O30XVBVUjX3tJ2cFwmQ/ZM1yi1X7dh/CBQtmDlKJ1EbaHa1mtyqEjJG/yYSwO5OQKnqS7tbJFE5MUN/fx91kNbZZ3MuAA+mVg48VCItHW2NcSSke1j2xA4HVxAeNx9/sUIKNW2a17A1CrWDD+Cp/r0a2CdqqjkZIyLX6fgfTq7GvUgYOorqJZvnj6ytzrHoucHSmdzIivYZCeJru2LcGVU0bN2IOmLyVsWYhUiKzK4TJbujBLMk1ojHFF3zu7TeZ7MfA2sjN2s1oy5h9NX+xYDhWheCrMcMRsUDkOgyhJIsp4wGk4LbMc8TN981TiXVueHrDxLz2VnRMN26zmqltFyNkv68Q8uV+YDeoa9wIBCJrhNc9f7v4VH2Eb9vAYgtMIqJmj9krUufPg27GajW4itwLbrIep5vQzhqMQIgbeofZdiy5SJ28QCMioBC+44abgToYdAnDgZasupRmnWDzcr1wrApBIyxpnIJBOH/LXkR5CltQyhzHqmZgp/59m0LgTNYzmjZl9y7jAbSW1CGKcpJ431EIs8lyG/pWxvIeqpdotBO8PvjhGBmCZYqE4bWUFrWDDXsTBqDaahKxBtyIjVvIFV5+bPMSYVynpTOJEdPFEu4U1wm3kpq6/aGpOp0sd+OgCwREY7i+4ZkO4ODh6VNAWDx2qKuyRKhJtA5DKBdSg/XwMZal3vCWA5qnb7uBkzWZuKIUi6nj71iLgn/bDR1aK7spcuPOePHBUf1mNx7YjtlU5Vs1dKIoEg8TMtq88Roc435nstneTbNbRyGUe7jCWNlAlLIblywsU0byJvBNdCZtGIGACaJpvcoYH4TyzPLZcr0NhrYlUVLmPdy2UFxJ5k3HX6/fuiwLEBbjDmEzh+NzUjgjRRg4psYIBIE2bguHK9M22QiIoPKaN2S2HTEfzOTVGgePMX3bVC0QBfv5aOR3OTWVWKzSiMoqteCqb8KLY5odNoUglJZwDYWAFKHR0FjJomHddNiNcSKsVQqExNW7Iat3ucoHk+RaQOiNrgygYlpM83yxXpaZQN0ep6cJFldl0Jii3usEr+rqsQMB9rsGSwaS6hoJuTVk9dXpupmwHaYZItHsx8UNd8NCBTyjM0mIPOdGIvriUNAkEXNwEqwgkZ5GrsgnIKvNer3fjcNRf2j3uMxMBZLwMi/dps8kQSWiATh4nn26KHepUHkGgqp5SmaFdRRCeXDLNnqJQojj32TdTbZ+Q2KcG6GBui2v8R4pe4iawGMO0pEhFDD/u+1uFIxCf4iqoGGmaTOO0Ba5qcBD1FY0jXiyYvvj9bsDxLEwBNVrMuzbilrPh4C622ZdRXySIOqK29RNxhqhFqs1jpsw9LJOTTehKSEhqUYu3wSdju//ZXetHseJuk4jkRlbikbShh3slu+vypuBgJ1aNI9FWwsatW+OF3qhe5iDfnnKe7ehDixTR2Ktz8IS+nTldtFr8APBbeqn4254XMtxOC7OTJNSmvC8xLzRNEkq90AdfFS2mmNQc5ykiQzzI92e1PJqIbFGy7cTqtu3RPvC1cfdmJdZD5zEDjNDQMpL6wQmqS7ljodnGKqVSXpMqesRVcaCKUyaTDAMrKTn+KPt8kMg3woEjGHX2aqYSvS2LLc3gwlZzxlEeqOhOtv6vVhmyW4CTkZSq8/8KvlmYNWpoRYr4lmVYpFOnfIwnULF/JmQIKqy3DJSrzsEdvDx6NwKhP9sh57RZtmcxDpnNAeFkLmswQKCeRsvBSLfyVpMO7cgtqMaoYpISh1Sx7ss4Ong5Pi4lhZT/krTMxjUguvRxPLD76iD24FQFphnRHfC9fc1+jRO9gPOcBmdSbHr3KYQyiqhChMQVELTHntsTRmR4tXyLqeXCkFTPbdOCDSOSiRqxOqE283suyi+EQiTnc+xZe/FrayWQsDCvhSUMRObi9v0Rlc2Xl2QmYCgJHyN46byAFWqU/EsTk52cHXKpyp1Kq0IzSg1OYDBeDO7YWRuAwJmcZoMjj4piRvsMezVkt0NHTdhAYJBRJn0/PWNCsHJwLBlWqCC6bHbjuhVdF2F1WhIYrGRdo8KYbH1GzRmwq3UFAlNJAnUmIa9Wsbr5U3khrt5u0tZ9FMi8rQzWhY1mGKAGcosDCEioD07j7eEwyH/oE3GLc5VTfZE+CoipWGwkkUpUrVTGvxsOeiZjNrAkGVN05RUl8uWPevFjRz3JiCUhTFYNipBEUxnsGNXCH8vx77IanLJVLVus/LrxQsJdcxgdFdQ9tJ3SqScC7Is5h2PZ8zXNlTiUdrg7M5gvL5pU2AAwjdgCJoUsQydiC0vayiE7cBiJKWgOb1bDwZhdlRCWHfcrM7J2XJsm5HMnODERwYwhOnxlK+nKwYDU4pjMSIZcXr+MJxvlzOGp74FCLPFo63yGoMPRhDosW0J68bQzZhqW8HLu0TvjG+ipWiMpUwWnWC0E8rXcJSXVFGtAQQ3OyqEch/TvuNrF1RVEKR2FMWG2mo0dLOBnXIBBaAMmB6au4kh9J2ULTmMF0EhsLsQYGPgEpnhnEEkUkKzWysnYWaYprEEiqhy5JpWDTN4MfZlid29HDfMk8mAjjUqf+e8V5IkXiJNRZZlk2aiZ/t+MNqtZ1NWFXYDEDDMJhOYdirX5IasZUXKiRpyupuwhOApSUu/0YVQtZzRmJKsiai0zBpm8Lf9oJvVaTSIYQ9nhZBp8ne61LnUlRSFT7NU4npdfzB63N3SKrkWEFDLyWz7diTVimHfDSzaTBh2xTbPKw3SubGmHjpDTI2p0pCbaKlTwwxGz3CdtNc29fztfw6OtT6na8pHTmqgBIKqpCZPHc72h4PReL9efJvWgMFNQACDWGZTCDEmtTAPXr5+sOWE1xisZjGRNGxcN71NIQB/4yWZhSMkvExrOJMwM5D9YAukqR8L86BC0PmEFy6mPY4PvAU4AR5GC0amq9Sx7Kr993a9zGdPNeX7QMDzL50BB7xKGtjHiNnw3oxs1VCVmwviRrCDawm9eQf/htVPk8RgAYKk1krUmuyAlbJ2yBVUohjW0TGGlq7egr0/SeJYEpALKIKRJAm2a2imcZq1ksyzLNsPBuPxbg8gmBa1YXALEEAheLHKwhNV02Hn2VNYAVzsMfiSAAiAg97wxlsVy1GHNBn5m6GpDOW5LshIh2tqrBaD4ulp59Jk8Kr2H6raarUUXZNV1aW6ntGGynFW1+50gsFgDiBYLid58fQ54b6vEGDjZjk7UYgKCoF1Wy0W844js56uNGC93lqcqXImsZ7aaHVSuacYRMBUyeYQwGH2jgOXY+pF2RRCh3+zLGu05AZHHMcCBPhgIIIemD9un/eLxSSfPX1evguExbijJYRhIfGu6Nzm+L/EAbCrHqVNlsET2oR6nXB1m6FUkvAW67atZnXyMrAyLSHMMasuFY/J6vi01km6IGAX+n7HD4NgEG7n2+3ueYEYyJ9+kHC3rKOEJTJfKasIsA1evtoNexqVmPiVIgEORrdyEYxdpkwJ0FHcVhWvhncZPfIpEUXWkHmKtTwP6mf5EB4kQIEtYAvTP19vt/vn1WQxm05+GARuAwI2K/TY4msM5sEDnjjsUdZUUYk27JtxgAadpzeZSj9FgmLW8S5jU3izRqxii9jnJLfFdo2y3W43m/3++XkxK2U6zT9NB+oAoVQIhCnTJNFZBw9w0OFEV2LcvhEH6/zmVQo8HmxHlvqQsKJrHTcBVTQldmdSJHOXbvnpheR5/vQPC/ddhSDi0mBYrAmrQpgADpyUaDKjr4Iw4KAsRGgkTFuDKkS1YirK9Bz2LmVx06vjhfs5QChz91rN24EgiJFhMQV+F5P1yPeop6lEupEjxpEoCbFgf5Cu8YZC6GZElVisBllpYJBVnQPoJmVM1xPiWEgttvK0PxMIQH89luz7SBWJw6QQ8uXzoOPJYqzeyq0k3vXAnkZ9cPuwYdwTZTs3ixWp1tRgrGLMGLQaK4TItPOFCuFjIMzWI5uy5NUYMcm+W+/lSh3sR77tYezFzXeReFXWMrAXGHDwhJPDSuLbVKtTBmyyDTyPuWK+Rsx6oX0/Bwhbn1NZ+twrtOkxnNVNsfQLl7aYeroliawSrhOy+LCxDStrEDammfg1pmY57mhUZIyCijUVFMLi718TCFiDLiUsFleTyr2bk1qwE5HfTXWeZ+rM4CYC7Q1HLDiYrcJOxrMuUrfOiUllZ8nMPgRifK1C+BAIZcgqU9VqLO9w6ylDvikrQfFRfHO4tsAnvNKkmTXcr1gGLX8OLGY3RTt16qTwghYltNVmtB4Nggxh9msCAbPcqCwzqW3zxtSwfLbcAQwoVViCuQSeJjzQxP6WJRoPax36lDD6KdpiLWfSoSk8K+i+miF8CARUCC7TRAEQbrK38tl+PgpsJ5MUJWIBguHyptMJn1m7b4IRfKt1etZutRRCvh9ylL0nqyt+qcnwIRDKGHbGVPzk+/bW39N8ud8GPsDA81QhYsnlE4mUWX64f2B7RyyLLattJiDEYlonpx+j4VLRYEulKm8W1Ckg8FOAUDZmaEfCjTHFcaKK5HtlzaaAgvV+PPC7ThrrAiGua9x4fUMlUZJ43f5uzahCc2xzo6gsddQkUXFJPYUAVLEpMCVXxq4W39TJ7WuAUDZmYDhliCWZfBjNU0xnkw2gIPB9y8uYA/oE19VNZxiuZ+wVrYaEsRCPIMpZndjlstMna/V/gWppvYoiPwUI3/Z9J2Vw/xsyMPq3k1qKfAogWG/WuzD0bYujmao2mXPBErPR7W/r0Lewm7JWBRS9W3MlXlFFVu9yrCWE87dfrBDeBQImtWgsPgRVTpTr5PE8BwBMZ4vJ8nm/ngMIAr9jOSqlLVlmjIbFJoUmpvkv2BcplnphrbagRNQa7Njj8b8BVUxZg1+UhH69QngXCNiYISYMjh5DaJZHNAuQ6uR8/7zfbjGcYjQIBh1QBQ5nGi51Ybd3b+eIgmAIoiilXDd43NQp5rsa2QZr8dOEaDVCFcua/JnGCgSX1qIjPwkIoBA8maluUyI5/vxCtsGgDK4BCHStniObWRo3VEMSjCiK4puBQGRNbZgtaxjuF3VWzWQ7cGJGu15MsIlXjQQdjFWUWTc9UrMI4U8BAsZjEy1h0QgKdexL+cvqWpblOLQRZ6YaxyJyKPZwDZ16FAuK79a1dlGMEqGEsf5Ku1GvhDRSRZ7VlR3r3C+gEN4DwnJsy4rMchiEZFFvYeC1qjZaPC/LWWZiRbjUUJSWW6e6WCmaRp3uYL6d1AvQmq7DnklYqx3Sek0mNlh5WWJEXTP9FRTCO0CYgkIwk4SpPjoxDFmTD6Iqiix6BEQUeKVW6ZcyvqEpAQyQJH6r+X4YqigTxvKa0SkBkW1n2PkcYU1riVPvV1AI7wBhMe4kPACBQcvFkUpIchQsDisAyRNjSeIF0WD2uaoAJiLqtCz7sZnWHSlcpBkvslh0UiQatRRCAbQUDC0m3ScoLdr9FRTC20Aoyy7XXcWvqVedX1JFQgydK6u/TOqPE+7ajKEBaiyb1uCZ3U7FNHadMWhVljTnl1AIbwNhOe54TSVuf6G05DSrigBNPhG9PcXCG4wOnpakYfkn9slZPPoOq+kou3otWvpzgFB2alG/DgRi3BRoxnX64e5TMKgKLrCWsBZcvdaRMGbQsEZBtWX6iyiEt4BQLB87VK7VzPhTkgiq2lJakZukKbH84NMwwLxXm73qsifWihGZbIc9k9FiMPjsF1EIbwEB0151hSY/Gwi8IrqS4lKT5+xhMN5vJp9N6Slba7EeAYm0N6jh+UcPJpFZBy39VRTCm0DY+h6hUutnA0FW3SShqWP5aCgs808vlGIVdilrMd82b3bCdZ0CkX2LUMZs7ij9VRTCG0CYbkY9rUX5n00SRNJITa6HxUL369n0B6yTfB9wZsLq6Esd9iZeFVWURY+1hHTvV1EIr4GAPllP0nhJ+BmzL2BFGFUVo0hK09Sxh8PRfL38MWmeoBDKqs6MeMy6ozre5fXIyhgrSLdj2X5cPv2iQMDjez1SjH8eBJHrimpE3EQQkix1OavjB7vt6ocog9MRUIvFCpYkWYydWt1G0D6hTH39iCwZdapw/CwgIEMwfoYLAUsgESIqmkrdxOr6w+Bxt5lNfpymRO+yy1R/21AMsZ7nH+kIYya8qEi1zrp/EhBKa5i2fwoQFEWSMpM4lu0PBtvdZjH5kbxpgonwkcCCBEN1DW9YZ9cufbFsBreSGM7gl1EIr4CAMeya+w9jII6bjdgwMrfhdG0/CObz/X42+cHseTH3W5rgssSRqjxf7/wZqaLGaqcmqBCKXxQIyBBM0fhR8x2LQARF120CHRRAAcRJIrUSME3TrNHolSAId+v9YvHjC0FMN4OuKUkuLyW3SRRFAs9rtZoLoOeKp8nNAveK3JQb7n4ZhfASCKAQeloi/7jFT0RRRdMQaKHruTTVpczlOAeIoR9i0eD9ZjL7RwxpjMZPKaMoWb2Eowl6rhglSX8hhvASCMUGLK6Y/BgXgqoorRbAn28kUmqasmnqAIEe0EI/CIP5br1ZTWb5P+ROwXw9jWOXWglH2OCm4TDeSf3qJLePgDBbwzKKRDH+jMDvi4LQiAH1WabJDZo14L2tnt3pDP3Bf8LRbrdeo30w/Qc3yOk6GNaRWglHxabWzWpUY/lZQFg+2nrjHGfEJK2DKLqeplmWqZzDWRbMv92Bl/b7oxFAYL9dbpaTyXT6j/tVCyxIxi7rot7NdjXutXh6+kWBMFsObKv3KSnjVjsoPqySfj9YPYxG891uv1+uYCvIJ7PiJy2DYlJHpj/xZrNfFghPeREMNnlRXx5BxiCjw+w/b56Wq9VsMsnz2awonu7yq8oLq2Gx2ReLp//Wtt1Rliir1WIy+ZY/TJ9ms/v8/35AeJq+TWRnJ/nYq3v+1uw+tr81EN6aXdjYl4uDLGfvFQPP88ni8LXl4p1Kwflhd/z2eisuvp32zuLVlc/3v3A9FfktG3H59embn7xVz3T26nff+OS92PqLIahGqnIy3MxNLsbgPbYyvbzFO8X5z4TlDY/H6R0KFiAUOd51v52PHw8ynu+el4sX2n4GMzXbn782ftztYRxeX2+/q2T/Km2pWB8/A+OyuITOcvG8346PV57v0Q9ZnfPst7vvy36BXsb9Gx8Ag9kDwq4Gs1jsX/zumUifP9kv35ig6yEAprTd75+WwI1vecrd/sUYVD95cY/JcrZ+Po/yePsM9Kt4bTnvd/vDJV58ePF6+xe53h8AAV5t9TwfzceDYNg5yRAbhswv5mqWL2BKRuvBIDx9DbuKzPcvU5dnRZUNGQSDYF+89P8cPwuCU4BQgaM/fhwMhpe3n48BZde/8YEMxsvpOnjjq4PBoA/XGu8v6vwXq4eLbw4HZ+/SbDG6+ORheb0OFss1gBWG4HKkAnzU9WoZDG95zuKpWF6/0fUITWfLzW48D/uBf77DIJzvVi/UQr4JDzccBk/XrstimZ/uMBhdt1J4DwiAPpjdcOB37J7lkIzSNOWxtZ6DLYT88IinKaBgPoKZsq0y5Z3GEvzhcZY9DB73V7fKn4Ouw6FvweLswbXjZvHYsfATzuK4Y6TYbLLejgdDH6/s0VSSkkQzKVzZH46W2ODBKh0VL4SzLn/oWP31ZDGyrXcEXmUQnst/Lca+dfb9WReRCZO9f7qw0wk3xeV62c/H4XBoVw9KyzOHwyB0+nhFvGb1bG9J+Rncarb1q79Xctnzopgut9sxoMwuy0vQKBXRX1ee24b7q8OR6SboVE8Pt+tfTzaO2fkdrl0m76S8wXYwBujZlpfxfJZQXm61hCYvSR7RTN069peYzjaAAsx4p66ZEi+SEonn+VYrTYWGZV+dsmIviv+ZtOxKYmbwHBf6Astdlf1KdGr2guocOF/sQh/gEctmKsoKSRJedl0JvkY7weZhE9qZnqY6iKlrenVZkNRM8SelmArcZ/Ow8w/NUOBT+BUzTdMM/zWzjE+p1Tm5estQFlpeRIdntM+RCdihtvwEfllzhieAFJMFrgO/a3MN2oDnVxroVhXabbXJ65loD8JumQOK72xmx4fUL8XUVew1+4BR0LS8h57G2UVF0XyxRhQABswkyVIYYL6JyYQSn0nEsvvjy1qDk63PVU9qpi+SqHAlVgORps7L0hxv5jXA9A5wDuCJDEHEpKMyi1GWFU0TtUY32JYKYTpbb0O/a8EApJHruqqmCnx1/t+M2gYl3cGFTqj6WbpuFEWKy3v+/Axk7CxJmzF8otLo0Jg934/9Tg80kRBHqiYQ0nLdBB8jszrBOgdUkVaj0cCGR66ryWJ0EKJ6Hv4UpUGtwfYBszSOH7dkKZGxW6YiNJttUYxVNzO7h6LBs+XIF5vl9xRsP3Ieq2I5970EHrDpCq5qH9sLTkFnPeI68DLJ1Hk+cRMVBgEe0vM0Tc2czghA6JHyYUhLE44PKRIcroPwPNavnmxGtqfxODyRmlzkWsG+/jga4mykqaLKMiE41m34fSEW2yLNQJuc9/vpPrTN6iKy6JLL8Etsr0plPPeUE/VVaQ7uDRjs5wGo3QxmMo7iWGzEkn5YTyn1TM8Pt0gWC4TB0OIyteGK8ICKlGQZ1flTYhH1dGtw0k3T9agjahp1y6pBPH40udC7HOWVMh/9cBQzfcbyewnP4ym/m5gy3JsSTafE8kfPeb4fOtlJ4JPjOZmqmdnFB535YjXuEP5UpkYWVVVu8SlAWojKqIBE0zqP5XB9w/Jh2C0ghmkTiH2uJTxbD3uerMVtgQhmLzz0NsWSoTBSXppQEgkKT11JBxVTrnwYKdrzw2dQJEfRtVNguOvy2aXgOeQcu9RWmZPE4E67Ur6aYwk6TUsaYjtqiHGcmlkqa4euiKLX0Hv+Oa4BNjdCy8bigipE1Lko0oUr0cTxJFHqvGq69RIIxWyz7cPL6RrgOxLazZjPUtc57iyOCvgrdVaOdZTtRopwJ1GUpg3sO2VZDV04hDPA0oitU0/GBb6orFRAkJIoPceIApmzdV7CGq9Nr9p14EddNcOjy6p+klW6rbEAkx8APXoChdDtHrodgUpKvGNUSItWP6sE9pB8PegZx0ibpmgj1YKd1nM1pQQCvCZWeoF7PjwPugA9xKNBJM06j1VZhsnlsQCPKh7nKF/sw34H6FNCFFlVDYBUpjrOaRNWbX+3moPCPD2Nlwing9mrxwTN+YC1IGUYdPzYQ50+qaZjO/K71CQepvZHTZP3HBxlLzMUt3z+mLrZucppmaTmlu/QjtpCM7WC43qbwZilrQRXg4t1n2cfAiHfrAHjLqw+11Vkz2uaLadrY1MxYNlI6P1BtSNN9uOhDRSOJjCpsYJ5isMQvhL6VtqokODJsneKBM03Qdd0qZvg07uiLAr/O1XvXsw7nie4smsIqX2Ax6MtUh60ZxmDTOxgPgeDCRZgMNojS16OB2fxnbTMRY9FI8q6/YtPgv0DzmFSwUSIUiAgZTWX0PaUEgguVUlVHx/r3gADIvhTI9Eu1tJsMcZPaIQtw48d7Cabx0HHgc24KYqiogiq2XC6ficI0RyBgRrCtjDLV8H5YWA9VoHbUawSe3ApDwtQCKKb0EQQ4hjbwVbDNl1tB7ajJ7zkUlFrph6wQ7gBjLLtNcp6gYJsuHxyHOWy7quruGVNEmxFlJy5BsZMpLICuzao49c1m16cNWxG/S6hOBiuS0SCingYhLv5Fozi/b6siFRqodkaC+jGUWJIABn8WritvjMe9JKqxTkgMjp1vgBK7OnnSvmwflLAcX5UWRjvJ1MZq53mh6gSk0pxu+zWmXLD50lZm2mz3R6I0fJ5/1zK/jnspI1Sc2DPA8d/vpBNjt3jqnUWweLn/McFVnmCvcjRaFXbjsDaxzl/QDV+qLGjuGb3PFb5BgMSYe3xcnKsIFgOQJYCZ6AYAiWZuBKC0XZdDkI5UrgrFpvzw/hOqc1VGFoXYHbxmPvFwzOMQRNGTZFdosr2Y0XC9riuYjEGepRIsG12Bo/lKK+xebJbBmgDM+VN+1A9vKyefVEnSG2pzmHfKAu+ybLOA9wab2RTXAFhAvu4o2sloNoJH2MG4ny7X09m0+kkz79Np7MqiAAIWBeUFc63S1sp0Ib5Bj7K8+kDMlNyDHaL1UPgPhYu8YzLgBcR28UiISpLp+Ozu1rDq75eAGvTJPcUKOXa4XZRvs3kFMOQH+QBtxw3QWUowBPBxv6Qn2SaY7NurUnLUgRU61XhBg/YdFai+JCqm+jlbgTq305P+QZXFSMXc7uM6waF1spKPVbMlmGHy0rlzMNyzUAZBDBFy2nZfasaqWpNHx8TdiivLHDuRkorg5m7eMwc9KWdlTwnkRRVA4qL8zp7GvlVdwG3KWsK7Qbj/WI6/QbvBUpUk44VrlpZt6KW2EToKoRW1WQgYyXnncA4iUpCYYd7s+o8d40DG8zFpAxVi6jpAAzwzq98V5WZpUl4T6DJQI73k9MmdQmEdlq1KQI+DgqaxFcFEPjMH4E9jryv1NJt+RgolsNubbboCQiJ0e1XSHgjNHFkazKVUCOAkn9Z2GAxtjNVThAILRU2ql2ObtBnwLvquviQ2L64NAKQrJ3ylAT9IlJpuh30lIqYkUMZzgniS3fLxs0ulYE4BdsNLITi/YAFGIC43OeogTC75mqzeaehE1LyYk085EMCbejEpob3oLymep3B88lFh0Dgkwsg4PX+BqbotS4DToGMtfD9pqArwh5QNBe4Udp7K3PjAgj5emy7+LYKslsByM5r5+DBqAYcNDXZw+kT1avmi8DyLKodl/6xKdIDTHZaPfipPVSSEDDIJ7gYqswQ+IFf0XdklqDmT9iWNNMazt/s9IksGZDLx+VC9jrjq2gPgKUDwG5K5Y0zoGDL5XKPm3sKFmLSjhsp7ZRel3JqG0dFBlzibO4Ay6isEp5qno+xrZNt39JdWnWIIrRhDxAGH57XzIdOLJdVNFxgzBU7vXKjyCUXBT2sHdpmIsQJUcuJTWS5Bzh4uAwpTN1Dh9FYaVRtAsv6v2I19gfbLYkJoTCqxWpsixIw4UTCQXqjlCh34aIGfUCJLhpGBHwDxmK+fPPoCBe9CVyLyBroOaJeNV+E3b3hymVNAlGALbtM5cnBuE1FoZkoKskyT5NKSyDCunLP6AARVaMqZXYkNngLPWkqcJMSDc1W2nuzZ0vV5zeRBSyDDRv7dRggBi4aYBaU4GsCARmFozG6fzzddQU1kqSUs0drHMTZo0/csuYfUBXC+bvZeWPwOancLQncAHezyTq0wOKX5EiOI4XP7PD5Px8HtCBVzkQB3zsi2svqvjMw8CNRLIsZqjLvlcY/Juw1ElKOTJsoqR1c6DrsSENLICS8SpNGmYuBG6oKRqOhYFfmWDGAFwoqAMEJtt/WsBLdRFBU952GANyl48+jSlkaV6Qt0+o/v52WjgXIPeB1OGpRVKqlh0v3oS0fTDlFkitb/G94Ucyeil0Jvt7NWm5VUUcSqR1iDr6BrysC1Tgtw8XjwFbxyQ9ZZLFAe6B4Xh1Vwe08QW3DwxiKar4sBY2c0ztWXRWo0wWb0+6B7YUmL9F0LM1TXRSVnCbxqAo1YugX7pbJZtDVZb7cRiqlmm/CDuhqXIpyFMmAg+33ysUD2okgHZJogKtdG2/wmFZ6GDSAfOW/wMpcp3ZkuCU9P1zpQbUVGSVDaQtm1UarTElBa15Rsh4YwkJVzVBoIRlDIKql/nIuQP4WEMq2R4rWxEkiUcp1xu8ElJRZflJJIzzXMLyrwcf1bRyKaQIzccqOlqVxW3IeN+75g96pqlFMOR+MW54SAQzixL5wg83AGEAvynEoYlV7o1sU3i4tG1fTSFYl+/FqgGGb6qVEPXIqUc5MM2vKpibLYOmkSc8ejiorBKwlm7ZKMz9WUY+d1wxWYVIS1LQxr5buUFARql51qYywOF7/u+lK+XPfORZTEcv2Zy8Ugm0e0CqmsAJ3yEJ2gx49keuMA+wUl3szbvj4sZyImlpuiMDHbRMsbqUVu4kPdg6J1JLayAK1gXUaQqtk5G/Xyz4DAZ5G09rRoaodGCTvxFoXuIPIZY4x7CAxvQrOhze2TsXJ3YM5jC9KDRxKt0U64z3akYfKq03Q+F4iSW4sxS9SCh72YaenV4yu3P8TynUer0/TcDdLK8vfVWBvfaHzFo+27FYVcfGGqtjgW7KqtqSEEI/r2f1ThSb0dqWSUmkq97KEEti2vdSVECPY0gXmHLijReWq3bggg1Kbfy8AHiw32zzXcHzNFIHiicfqm8CgEe6gdmPvSKdEnI5vl+eLdqYpCmpCnspY2r0oK+F5biIJskBwswp6NFK0Kts2dWAok9LaTK3h2x01uLNCcHTRddtGWb+B89/rjoG0h1QMFza0rDfY5RcTE3bMuAS3qkruofg8NmGleF3F1a1wCQYEGPylpyhWNM9xYQ4BWMrLblDT1bbfpae6fAnlMRPg29Xp+rxDSavioMBd/esMsqqcdLnzxrIcpw3ZbMaqKAq8IOrWMJyvjzVZSiMTKA9fep0uAZWvAzslhqYQRSBeeQyCr+O5ZSEWQZHpDdkJs3WHM5GISrzq0sZf8/+8ZIppahzUhV6pizKXUksqByE2k7nYGKZ48GGowP0MMAOoDippVlpaVtpSFLBhQM/uHna+Ryo3tERVD72JigRLgb7XhI87M4SLIjOx09m983pgVJ9qnRvkqgRQvgJQVoVHgajzuK/lJTq6mcujasVqzTOgWjaR24emYdWfkuplr8oNThfrvq0dqHE7kpTkRY7YFMj7MQVZQeZ5NSWg7rvHnVdQqWP/ZVspXq1a3GDxnog+KAR6qovXIOexmi5g7ylvIUo8sfFd0d+QCccCbM0Xm/ebCgHJdQsBLfG8+5IpwsgDTS1LkiaSeGywvnj0e6JcLgIXNnlrcDnKc9/Sm+XlJOqZveFucUjoKd8uJiY6UzZBJzvX0haqpH+VWIN3em5xJ0d0V3dPE2w472mE036Pc2PITudsksITDnsqLYHgtpT0cJyPjC0pfxpppYrAI6Y0uWowGxGzN1jPXp17gLVxqm8Q05i7KidQlL2GjtqTvux5gIZlejCwZOJ1wudRRz+0bI6vKhOgW4Qeq8PGFzXVclh7PQJPCgzF1U64PqHvNiBgJyHJLSeVUull52wcUKNCYSTJWcUU8Tg2k6NS7UYqGuGn4IHJZgz0Wq6KNBJiWv4+n1Xndqla9pQFDgIPijtYdl3nFEzT96u8cmdTAGzM46iqGjZenh7pYlHMZpf22mEcgIx4ncdZNWffFkjvqFztyUQjdr88HQXN19PbZSUj2J9KEwh3F/OqYYMoy0fjtlgsz5AFBdc4fE816IvFhAgzjr4GWAbXyWqoKk8VC0TNAit89xdHTjcEZjq74OAnAlsasaUXfTrZw9pLk3ITc8XDDJbFnaP4AAQXvT+r/K2ROsMMHiSpiB91yYvzX7R7qFItXUHQD2+ItEqT3QMPERp/VcuymOWz9Rh7JFauKV5Te36I/hVUCCaevEkNnq/O7WbbDhc3r9Kvm6r9bidL7hwR8D9ePngEVaKDzb3bLFdVoONqs1peA6F0b8aq63Xmm9lkMtss9+MBWJVSTGRJUcXYAb5SHlZjsTGRSIogCcf9CfltRtqHm8WSAWT5uAzz9Xi8WeSzAoY0n6yOQDAMVdD1Tnixv03B0K6aZIDtLL7MXgWjumMah3kXW56/yydbsKWPKig760ish0ZPXRZi0CxLeOfFar0NfKCFoIDbYsPwOtujz97KGkpZfRCAAMrWH+/Xq+NIrZcvqONsNbaJlkS4htXE5K5pTunQNIhSshM54fyK0uO61LSqXomChHS0X+DVV/tt0OkRjvJCWxSpntqDKtJu8QhsiUhtQwSeX6mPAlViLKpRfAICMsX84yjmAoutGgJRqwJxcTMmWOJutNvu4J9ROHqYnn1aGnXL3q2RK1O7j5ks23A86FiaScEAwBAl1fLDzcPBwOulQNAintdPZlOpDhtELe1cV5IJOZz1FYv92PdH4/1yvV4v99sQ9hrUacA9SdO83t+AKTrlWWYEC4NkL5x13/AkS6rq4ZCKypQnMs1TsIR/ZEFoGAAQTurQHszhneej0O86ehMILS+qmYfRMPjtvzEkxtNOwGmkWP9rdDFSL8m13zMEqdql+fQKy4cTDvFwOGrSo61WdgBRm0q1BkRg/eEYr47RYERveK6iKIKbcbBllESnjPBSFOyJkp62SPTKUaJ5R6UZS+YH7Zq5C3dh5nrkWJA9badOlbUIgif4x1hHZOouX4afRK6meZjdDN+wHVVXXWAvSWpkPXvweHgjXPzNsp6pTM67I3AhL6GuBgQgVpToyDnz9bxve57tDzBRctSHmfBiAV3msCwRR5dxVzDTWbnzNmmS0Bf1LVDDkWZ1/p9IaQ9DJNFFcywKpCb0tJWAzcuZ592UAIoxWbPTc0xZUZoG8co2Qud4tkEPnZnHhcajX6p7HKmu7V8lu5ezcUCf2NReuRCAoyuHj2Pl3C0Eq3dSTzuuZXoY5a7lmbJsSLKmUsoDACtTEHFDXUVVeEo9/+QnQO6jA2aPPgo0f6ffzWvId2Dsame7PU5MnWZVFGeaZb3wAITZEqZWLuNLEAiabjY4rpGl8LseYJLXZa/rP+4OhxQPuyFX7uOKl134f/9ezTuZ5qrIBBXS1Kpq6LP9aGiZnqoTp2dh1xeO0pK3iI00JfaV7q/ce+W5lMonysu6lXj4fjyVcVuVd72smHAEAk9PZ/Ko7FOin0raaNSDdyapkjYacdRuxCYHSuJ8c3QEmnwrPpUFjFPFNKuRoql21QIVw8MIPcTFRIp6oFRXRCY5FV08N0ssDXHqSCeal8U4D3oZM6jKsmk27GG4XZ80rJNGTVV2+SsHcukeOR78xLjpLW5IcAEkdJyUtqLKEdAmJFJaGLyMQSoYjjE9GW3djKp4nCBW9T8o1WVNhq/pUkYt2w/Wy8n5RStXAEZNXcARX1RvehWDMsVSZf0N1qKXJRiNQgF6lDdTpEORIMUY9zK6Ilnwjj25MkYMKVFfFKHB+kkwXiWTUYGgldbXtwsgSBrh/KMjc7H2HZM/dpdRZLepwUsnimKIDSXNPFQHF00Gi2U4tEiGrnw01zQNzDyeNzEJPJUb1+U6K0p1MEia6Lq+dn2GNnXJ8aQLmOLkwiva9Wi7WT2UrLVcaqYunpDILQUgYpc9bU5ItnVNdVUtkZ1LFySGWjbio/PatD/qec5dnkKHZXCcKpKGoKq8lGDZGTB9m6aMpYWK09UD2zFTbNXmwnjxMs8rrQbNAKWe1RmMt5sjc4YdsAoxbTRc48IEKjlt36Iufsbzcg83fzz/U9OmycMVZb7ZTDAgGsPoMwz9Ca4PH0sXUAOw2mhEDZ72XkTcoPlPCH7WaLR0r/Kuz9YjRxFBmvA4eCp/3DBni+3Q+l+qKHBB4sIbJwlRNU1KpSxrVJ0Crgaw2CCNdGhqSGmDLwdJ5sFKl5VGSol/Wa4TSJ/qlQPQII2W86LNJ/qm4Kblp0T2/EsP+QxbqBumShsNUaweCt4GbmWmDYxTmq9PRwCwKMBYg+vIvPoibhnjHNxyHGTN8T/qPcBdMRcMQ7QcTsuyNEkA4LAhpSaMhnPpyilQhXcsR8pSQ8aIVh4rYnAc7GN+MNovzweys7Xfyw7BpL0XngwYfO/wESnHB/M7fMtz4N5SK4XrKnDZJsdZXX8QgG1SXHuP/f+dYz/VFxvDbAnb+FkO/AE9ACmflj+Cofe6J2O0WMz72Ikwy0xY2vDePH6txXl47zcaRhSzbRlR2uCy/8FejQOVSgn8iqk51vDS1QpUWT89x/+u8iHKKKfe/44fm/97cXQ62QBvtho8zkWKz5TAcMlcD1XuaLc+m6mzbdA7DsbLKPXJc2CdAnnDjxpZctfZNOsdJrX81cUd2nE4p9ezrG7nL79zVUkkX+2Av/rwpd7hS0CWOkH4uN2sLjMjwRQ5pyg9X7u4sQb8KWOnVFnFejcOfWREeFnLwsv6h8u+OO1HLngpL85RgNBeyuHZMbCgfJ9up/PXX8AGzwMP1koYDu0u3hReqHyj7l/AWYPt25EG08V6F47Kh7V6GNRbPi2OVP/hakFePEa38yKrB9Qa/vSUHvai8u90sQfLpZwLuEH1TL4fhmCgLCdXtPmc+9R5WT149nj6cPRhERDuZf4kmM+7R7jbw+D/+v3+A9D3MATL6NrtV0zW6/0oCEchfuk/+B34ChZKvL7Xf8MgrCR4deZVrEbVh8ERqcVksd5u4d6j//T/7//Ky44Pl33lrXsIzxK8qpm7ON0XL3989gW8Tfk+QYgFTnaXyzPfwBqAFxo9wAv18WvB4267BhRM30sFW8NIhThSfRyE8KEahe2lH2E5DsLLB1m8WAujy48fXy3YfLnezcs79P9vgMMBz4SVp65H+eIyQfh6lB+Po/xxUaBXeQ3FdDpZbMCKL6Mw0Z7fbGav026Lab6Eb60xUHOJ38F6OK8vvznJa7VUrI6fXXiJJpMNXHa+PVx2+fZlsZDDhbyOXbr89IySxbp6H3ja2cuU7Onf+WpTei8wOBS/Bfj7+6OxKw4PW/7Gfn0Yhes6KMu3H+TVCKC8EYsHt5gd7rCdl8/07Y3KU8X6fJHXHx5H6jvFod5JeSuKWRl2OZvNivdqXsEjlV+afPAdgNVBivc/fJEPC5cF5FWXfb/KwvRCig/ue/Vp+TpvP0z1S/CF6rWL26o8HR+2KgjzxnVvf8zpuy9aPtP0g2f6cJSfPviIrT7CXf4EuQPhLncg3OUOhLvcgXCXOxDucgfCXT62g7mHxX0U7lKsuDC/I+GOg3XIhb9KB8q7fJ0sxwNuHN41wh8vq1HIrcM7S7gzhHDMLR5Gy7/vY/FHC2KAe1oGd5Xwx1PF0YorNmGwuXdU+LMVwmBZcACI8D4WfzZVHI9KICzGd4XwZwsWgv9/kVot9aINPtEAAAAASUVORK5CYII=";
 
@@ -89,6 +140,11 @@ function catalogSuggestionsFor(query) {
   const q = normalizeForMatch(query);
   if (q.length < 2) return [];
   return PRODUCT_CATALOG.filter((p) => normalizeForMatch(p.nom).includes(q) || normalizeForMatch(p.fabricant).includes(q)).slice(0, 6);
+}
+function pumpCatalogSuggestionsFor(query) {
+  const q = normalizeForMatch(query);
+  if (q.length < 2) return [];
+  return PUMP_CATALOG.filter((p) => normalizeForMatch(p.nom).includes(q) || normalizeForMatch(p.fabricant).includes(q)).slice(0, 6);
 }
 function findCatalogMatch(nom) {
   const norm = normalizeForMatch(nom);
@@ -387,6 +443,18 @@ function App() {
   const [usageProducts, setUsageProducts] = useState({});
   const [nomFocused, setNomFocused] = useState(false);
 
+  const [pumps, setPumps] = useState([]);
+  const [pumpForm, setPumpForm] = useState(emptyPump);
+  const [editingPumpId, setEditingPumpId] = useState(null);
+  const [selectedPumpId, setSelectedPumpId] = useState(null);
+  const [pumpSaveError, setPumpSaveError] = useState(false);
+  const [pumpNomFocused, setPumpNomFocused] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState("");
+  const [pdfReturnView, setPdfReturnView] = useState("detail");
+  const [pumpSearchQuery, setPumpSearchQuery] = useState("");
+  const pumpsRef = useRef(pumps);
+  const pumpsDirtyRef = useRef(false);
+
   const productsRef = useRef(products);
   const dirtyRef = useRef(false);
   const loadOkRef = useRef(false);
@@ -412,6 +480,17 @@ function App() {
         loadOkRef.current = false;
       }
       setLoaded(true);
+    })();
+  }, []);
+
+  useEffect(() => { pumpsRef.current = pumps; }, [pumps]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await window.storage.get(POMPES_KEY);
+        if (res && res.value) setPumps(JSON.parse(res.value));
+      } catch (e) {}
     })();
   }, []);
 
@@ -817,6 +896,69 @@ function App() {
   }
   function deleteProduct(id) { persist(products.filter((p) => p.id !== id)); setView("list"); }
 
+  async function persistPumps(next) {
+    setPumps(next);
+    try {
+      const res = await window.storage.set(POMPES_KEY, JSON.stringify(next));
+      setPumpSaveError(!res);
+    } catch (e) {
+      setPumpSaveError(true);
+    }
+  }
+
+  function openNewPumpForm() { setPumpForm(emptyPump); setEditingPumpId(null); setPumpNomFocused(false); setView("pumpForm"); }
+  function openEditPumpForm(p) { setPumpForm(p); setEditingPumpId(p.id); setPumpNomFocused(false); setView("pumpForm"); }
+  function openPumpDetail(id) { setSelectedPumpId(id); setView("pumpDetail"); }
+  function updatePumpNom(val) { setPumpForm((f) => ({ ...f, nom: val })); }
+  function updatePumpField(key, val) { setPumpForm((f) => ({ ...f, [key]: val })); }
+  function applyPumpCatalogSuggestion(item) {
+    setPumpForm({ ...emptyPump, ...item });
+    setPumpNomFocused(false);
+  }
+
+  function isDuplicatePumpName(name, excludeId) {
+    const norm = (name || "").trim().toLowerCase();
+    if (!norm) return false;
+    return pumps.some((p) => p.id !== excludeId && (p.nom || "").trim().toLowerCase() === norm);
+  }
+
+  function savePumpForm() {
+    if (!pumpForm.nom.trim()) return;
+    if (isDuplicatePumpName(pumpForm.nom, editingPumpId)) return;
+    if (editingPumpId) persistPumps(pumps.map((p) => (p.id === editingPumpId ? { ...pumpForm, id: editingPumpId } : p)));
+    else persistPumps([...pumps, { ...pumpForm, id: Date.now().toString() }]);
+    setView("pumpList");
+  }
+  function deletePump(id) { persistPumps(pumps.filter((p) => p.id !== id)); setView("pumpList"); }
+
+  function handlePumpColor(hexColor) {
+    setPumpForm((f) => ({ ...f, color: hexColor }));
+  }
+  function handlePumpPhoto(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 300;
+        let w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+          else { w = Math.round((w * maxDim) / h); h = maxDim; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/png");
+        const extracted = extractDominantColor(img);
+        setPumpForm((f) => ({ ...f, photoUrl: dataUrl, color: extracted || f.color }));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function searchOnline(nameOverride) {
     const searchName = (nameOverride !== undefined ? nameOverride : form.nom).trim();
     if (!searchName || !isOnline || searching) return;
@@ -861,6 +1003,7 @@ Règles :
   }
 
   const selected = products.find((p) => p.id === selectedId);
+  const selectedPump = pumps.find((p) => p.id === selectedPumpId);
   const containerStyle = {
     fontFamily: "'IBM Plex Sans', sans-serif",
     background: C.bg,
@@ -1069,6 +1212,11 @@ Règles :
           <div style={{ minHeight: "60vh" }} />
           <div style={{ background: hexToRgba(C.bg, 0.68), backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
         <div style={{ position: "sticky", top: 0, zIndex: 2, background: hexToRgba(C.bg, 0.78), backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", paddingTop: "max(16px, env(safe-area-inset-top))", borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+          <TabPill label="Béton" active={true} onClick={() => {}} neutral />
+          <TabPill label="Pompes" active={false} onClick={() => setView("pumpList")} neutral />
+        </div>
+
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
           <div>
             <h1 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 21, margin: 0, letterSpacing: 0.4 }}>Registre béton</h1>
@@ -1288,7 +1436,7 @@ Règles :
             </div>
           )}
           {selected.lienFiche && (
-            <button onClick={() => setView("pdf")} style={{ display: "flex", alignItems: "center", gap: 6, color: C.accent, fontSize: 13, background: "none", border: "none", textDecoration: "none", padding: "10px 0 18px", cursor: "pointer" }}>
+            <button onClick={() => { setPdfUrl(selected.lienFiche); setPdfReturnView("detail"); setView("pdf"); }} style={{ display: "flex", alignItems: "center", gap: 6, color: C.accent, fontSize: 13, background: "none", border: "none", textDecoration: "none", padding: "10px 0 18px", cursor: "pointer" }}>
               <IconExternalLink size={14} /> Fiche technique complète (PDF)
             </button>
           )}
@@ -1297,17 +1445,240 @@ Règles :
     );
   }
 
-  // ---------- VUE PDF ----------
-  if (view === "pdf" && selected && selected.lienFiche) {
+  // ---------- VUE PDF (produits béton et pompes) ----------
+  if (view === "pdf" && pdfUrl) {
     return (
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", background: C.bg }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 16px", paddingTop: "max(12px, env(safe-area-inset-top))", background: C.surface, borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
-          <button onClick={() => setView("detail")} style={backBtnStyle}><IconArrowLeft size={18} /> Retour</button>
-          <a href={selected.lienFiche} target="_blank" rel="noreferrer" style={{ display: "flex", color: C.textSecondary }} aria-label="Ouvrir dans un autre onglet">
+          <button onClick={() => setView(pdfReturnView)} style={backBtnStyle}><IconArrowLeft size={18} /> Retour</button>
+          <a href={pdfUrl} target="_blank" rel="noreferrer" style={{ display: "flex", color: C.textSecondary }} aria-label="Ouvrir dans un autre onglet">
             <IconExternalLink size={18} />
           </a>
         </div>
-        <iframe src={selected.lienFiche} title="Fiche technique" style={{ flex: 1, border: "none", width: "100%" }} />
+        <iframe src={pdfUrl} title="Fiche technique" style={{ flex: 1, border: "none", width: "100%" }} />
+      </div>
+    );
+  }
+
+  // ---------- VUE LISTE POMPES (registre séparé, jamais mélangé avec le béton) ----------
+  if (view === "pumpList") {
+    const q = pumpSearchQuery.trim().toLowerCase();
+    const filteredPumps = q
+      ? pumps.filter((p) => (p.nom || "").toLowerCase().includes(q) || (p.fabricant || "").toLowerCase().includes(q))
+      : pumps;
+    const sortedPumps = [...filteredPumps].sort((a, b) => (a.nom || "").localeCompare(b.nom || ""));
+    return (
+      <div style={containerStyle}>
+        <div style={{ position: "sticky", top: 0, zIndex: 2, background: hexToRgba(C.bg, 0.94), backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", paddingTop: "max(16px, env(safe-area-inset-top))", borderBottom: `1px solid ${C.border}`, marginBottom: 12 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <TabPill label="Béton" active={false} onClick={() => setView("list")} neutral />
+            <TabPill label="Pompes" active={true} onClick={() => {}} neutral />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
+            <div>
+              <h1 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 21, margin: 0, letterSpacing: 0.4 }}>Registre pompes</h1>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: C.textSecondary }}>
+                {pumps.length === 0 ? "Aucune pompe enregistrée" : `${pumps.length} pompe${pumps.length > 1 ? "s" : ""} au registre`}
+              </p>
+            </div>
+            <button onClick={openNewPumpForm} style={{ background: C.accent, color: C.onAccent, border: "none", borderRadius: 2, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} aria-label="Ajouter une pompe">
+              <IconPlus size={22} />
+            </button>
+          </div>
+          <div style={{ height: 3, background: C.accent, margin: "14px 0 12px" }} />
+          {pumps.length > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.surfaceAlt, border: `1px solid ${C.border}`, padding: "10px 12px", marginBottom: 12 }}>
+              <IconSearch size={16} color={C.textMuted} />
+              <input
+                type="text"
+                value={pumpSearchQuery}
+                onChange={(e) => setPumpSearchQuery(e.target.value)}
+                placeholder="Rechercher une pompe ou un fabricant..."
+                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 14, color: C.text }}
+              />
+              {pumpSearchQuery && (
+                <button onClick={() => setPumpSearchQuery("")} style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", padding: 0, display: "flex" }} aria-label="Effacer la recherche">
+                  <IconX size={16} />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {pumps.length === 0 && (
+          <div style={{ textAlign: "center", padding: "50px 10px", color: C.textSecondary }}>
+            <IconPackageSearch size={36} style={{ marginBottom: 10, opacity: 0.6 }} />
+            <p style={{ fontSize: 14, margin: 0 }}>Ajoute ta première pompe pour commencer le registre.</p>
+          </div>
+        )}
+
+        {pumps.length > 0 && sortedPumps.length === 0 && (
+          <div style={{ textAlign: "center", padding: "40px 10px", color: C.textSecondary }}>
+            <p style={{ fontSize: 14, margin: 0 }}>Aucun résultat pour « {pumpSearchQuery} ».</p>
+          </div>
+        )}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {sortedPumps.map((p) => {
+            const pumpColor = p.color || brandColor(p.nom).bg;
+            return (
+              <button key={p.id} onClick={() => openPumpDetail(p.id)} style={{ background: C.surface, border: `1px solid ${C.border}`, borderLeft: `4px solid ${pumpColor}`, borderRadius: 0, padding: "12px 14px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                {p.photoUrl && (
+                  <img src={p.photoUrl} alt={p.nom} style={{ width: 44, height: 44, objectFit: "cover", flexShrink: 0 }} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 17, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nom || "Sans nom"}</div>
+                  {p.fabricant && <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>{p.fabricant}</div>}
+                  <div style={{ display: "flex", gap: 14, marginTop: 8, flexWrap: "wrap", rowGap: 4 }}>
+                    {p.debit && <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: C.info }}>{p.debit}</span>}
+                    {p.pression && <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: C.textSecondary }}>{p.pression}</span>}
+                  </div>
+                </div>
+                <IconChevronRight size={20} color={C.textMuted} />
+              </button>
+            );
+          })}
+        </div>
+
+        {pumpSaveError && (
+          <p style={{ fontSize: 12, color: C.accent, marginTop: 16 }}>La sauvegarde a échoué.</p>
+        )}
+      </div>
+    );
+  }
+
+  // ---------- VUE DÉTAIL POMPE ----------
+  if (view === "pumpDetail" && selectedPump) {
+    const pumpColor = selectedPump.color || brandColor(selectedPump.nom).bg;
+    const pumpText = pickReadableText(pumpColor);
+    return (
+      <div style={containerStyle}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <button onClick={() => setView("pumpList")} style={backBtnStyle}><IconArrowLeft size={18} /> Pompes</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => openEditPumpForm(selectedPump)} style={iconBtnStyle} aria-label="Modifier"><IconPencil size={17} /></button>
+            <button onClick={() => deletePump(selectedPump.id)} style={{ ...iconBtnStyle, color: C.accent }} aria-label="Supprimer"><IconTrash2 size={17} /></button>
+          </div>
+        </div>
+
+        {selectedPump.photoUrl ? (
+          <img src={selectedPump.photoUrl} alt={selectedPump.nom} style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }} />
+        ) : (
+          <div style={{ background: pumpColor, color: pumpText, padding: "8px 12px", display: "flex", alignItems: "center" }}>
+            <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: 0.4 }}>{selectedPump.fabricant || selectedPump.nom}</span>
+          </div>
+        )}
+
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderLeft: `4px solid ${pumpColor}`, padding: "18px 16px 6px" }}>
+          <h1 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: 24, margin: 0, letterSpacing: 0.3 }}>{selectedPump.nom}</h1>
+          {selectedPump.fabricant && <p style={{ margin: "4px 0 0", fontSize: 13, color: C.textSecondary }}>{selectedPump.fabricant}</p>}
+          <div style={{ height: 12 }} />
+          <SpecRow label="Débit" value={selectedPump.debit} mono />
+          <SpecRow label="Pression" value={selectedPump.pression} mono />
+          <SpecRow label="Puissance moteur" value={selectedPump.puissance} mono />
+          <SpecRow label="Granulométrie maximum" value={selectedPump.granulometrieMax} mono />
+          <SpecRow label="Distance de pompage horizontale" value={selectedPump.distanceHorizontale} mono />
+          <SpecRow label="Distance de pompage verticale" value={selectedPump.distanceVerticale} mono />
+          <SpecRow label="Capacité de la trémie" value={selectedPump.capaciteTremie} mono />
+          <SpecRow label="Poids" value={selectedPump.poids} mono />
+          <SpecRow label="Dimensions" value={selectedPump.dimensions} mono />
+          {selectedPump.applications && (
+            <div style={{ margin: "18px 0 6px" }}>
+              <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, letterSpacing: 0.5, color: C.textSecondary, margin: "0 0 6px" }}>Applications recommandées</p>
+              <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 14px" }}>{selectedPump.applications}</p>
+            </div>
+          )}
+          {selectedPump.notes && (
+            <div style={{ margin: "0 0 6px" }}>
+              <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, letterSpacing: 0.5, color: C.textSecondary, margin: "0 0 6px" }}>Notes</p>
+              <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 14px" }}>{selectedPump.notes}</p>
+            </div>
+          )}
+          {selectedPump.lienFiche && (
+            <button onClick={() => { setPdfUrl(selectedPump.lienFiche); setPdfReturnView("pumpDetail"); setView("pdf"); }} style={{ display: "flex", alignItems: "center", gap: 6, color: C.accent, fontSize: 13, background: "none", border: "none", textDecoration: "none", padding: "10px 0 18px", cursor: "pointer" }}>
+              <IconExternalLink size={14} /> Fiche technique complète (PDF)
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- VUE FORMULAIRE POMPE ----------
+  if (view === "pumpForm") {
+    const pumpDuplicate = isDuplicatePumpName(pumpForm.nom, editingPumpId);
+    const pumpCatalogSuggestions = editingPumpId ? [] : pumpCatalogSuggestionsFor(pumpForm.nom);
+    const pumpCatalogDropdown = pumpNomFocused && pumpCatalogSuggestions.length > 0 && (
+      <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: C.surface, border: `1px solid ${C.borderStrong}`, zIndex: 5, maxHeight: 240, overflowY: "auto" }}>
+        {pumpCatalogSuggestions.map((item) => (
+          <div key={item.nom} onMouseDown={() => applyPumpCatalogSuggestion(item)} style={{ padding: "10px 12px", cursor: "pointer", borderBottom: `1px solid ${C.border}` }}>
+            <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 14, color: C.text }}>{item.nom}</div>
+            <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, color: C.textMuted }}>{item.fabricant}</div>
+          </div>
+        ))}
+      </div>
+    );
+    const pumpColorPreview = pumpForm.color || brandColor(pumpForm.nom || "pompe").bg;
+    return (
+      <div style={containerStyle}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <button onClick={() => setView(editingPumpId ? "pumpDetail" : "pumpList")} style={backBtnStyle}><IconX size={18} /> Annuler</button>
+          <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, margin: 0 }}>{editingPumpId ? "Modifier la pompe" : "Nouvelle pompe"}</h2>
+        </div>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            {pumpForm.photoUrl ? (
+              <img src={pumpForm.photoUrl} alt="" style={{ width: 44, height: 44, objectFit: "cover", flexShrink: 0 }} />
+            ) : (
+              <div style={{ width: 44, height: 44, background: pumpColorPreview, flexShrink: 0 }} />
+            )}
+            <input
+              type="color"
+              value={pumpColorPreview}
+              onChange={(e) => handlePumpColor(e.target.value)}
+              style={{ width: 40, height: 40, border: "none", background: "none", padding: 0, cursor: "pointer" }}
+              aria-label="Couleur de la pompe"
+            />
+            <label style={{ background: "none", border: `1px solid ${C.borderStrong}`, color: C.text, padding: "10px 12px", fontSize: 12, cursor: "pointer", minHeight: 40, display: "flex", alignItems: "center" }}>
+              Photo
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const f = e.target.files && e.target.files[0];
+                  if (f) handlePumpPhoto(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+          <Field label="Nom de la pompe" value={pumpForm.nom} onChange={updatePumpNom} placeholder="ex. Bunker B-100"
+            onFocus={() => setPumpNomFocused(true)} onBlur={() => setPumpNomFocused(false)} after={pumpCatalogDropdown} />
+          {pumpDuplicate && (
+            <p style={{ fontSize: 12, color: C.accent, margin: "-8px 0 14px" }}>
+              Une pompe nommée « {pumpForm.nom.trim()} » existe déjà dans ton registre.
+            </p>
+          )}
+          <Field label="Fabricant" value={pumpForm.fabricant} onChange={(v) => updatePumpField("fabricant", v)} placeholder="ex. Bunker Teksped" />
+          <Field label="Débit" value={pumpForm.debit} onChange={(v) => updatePumpField("debit", v)} placeholder="ex. 250 L/min" />
+          <Field label="Pression" value={pumpForm.pression} onChange={(v) => updatePumpField("pression", v)} placeholder="ex. 12 bar" />
+          <Field label="Puissance moteur" value={pumpForm.puissance} onChange={(v) => updatePumpField("puissance", v)} placeholder="ex. Diesel 37 kW" />
+          <Field label="Granulométrie maximum" value={pumpForm.granulometrieMax} onChange={(v) => updatePumpField("granulometrieMax", v)} placeholder="ex. 25 mm" />
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ flex: 1 }}><Field label="Distance de pompage horizontale" value={pumpForm.distanceHorizontale} onChange={(v) => updatePumpField("distanceHorizontale", v)} placeholder="ex. 45 m" /></div>
+            <div style={{ flex: 1 }}><Field label="Distance de pompage verticale" value={pumpForm.distanceVerticale} onChange={(v) => updatePumpField("distanceVerticale", v)} placeholder="ex. 15 m" /></div>
+          </div>
+          <Field label="Capacité de la trémie" value={pumpForm.capaciteTremie} onChange={(v) => updatePumpField("capaciteTremie", v)} placeholder="ex. 180 L" />
+          <Field label="Poids" value={pumpForm.poids} onChange={(v) => updatePumpField("poids", v)} placeholder="ex. 420 kg" />
+          <Field label="Dimensions" value={pumpForm.dimensions} onChange={(v) => updatePumpField("dimensions", v)} placeholder="ex. 1700 x 700 x 1020 mm" />
+          <TextAreaField label="Applications recommandées" value={pumpForm.applications} onChange={(v) => updatePumpField("applications", v)} placeholder="ex. Béton projeté, coulis, mortiers..." />
+          <TextAreaField label="Notes" value={pumpForm.notes} onChange={(v) => updatePumpField("notes", v)} placeholder="Toute information complémentaire..." />
+          <Field label="Lien vers la fiche technique (PDF)" value={pumpForm.lienFiche} onChange={(v) => updatePumpField("lienFiche", v)} placeholder="https://..." />
+          <button onClick={savePumpForm} disabled={!pumpForm.nom.trim() || pumpDuplicate} style={{ width: "100%", marginTop: 8, background: pumpForm.nom.trim() && !pumpDuplicate ? C.accent : C.disabledBg, color: C.onAccent, border: "none", padding: "13px 0", fontFamily: "'Oswald', sans-serif", fontSize: 15, letterSpacing: 0.5, cursor: pumpForm.nom.trim() && !pumpDuplicate ? "pointer" : "not-allowed" }}>
+            {editingPumpId ? "Enregistrer les modifications" : "Ajouter au registre"}
+          </button>
+        </div>
       </div>
     );
   }
