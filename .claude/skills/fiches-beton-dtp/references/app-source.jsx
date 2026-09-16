@@ -1428,8 +1428,9 @@ Règles :
 
     return (
       <>
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "75vh", zIndex: 0, display: "flex", alignItems: "center", justifyContent: "center", background: C.bg }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "75vh", zIndex: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: C.bg }}>
           <img src={DTP_LOGO} alt="DTP Construction" style={{ width: 260, maxWidth: "78%", height: "auto" }} />
+          <p style={{ margin: "18px 0 0", fontSize: 14, fontStyle: "italic", color: "#FFFFFF", textAlign: "center", maxWidth: "80%", padding: "0 20px" }}>{sessionMessage}</p>
         </div>
         <div style={{ ...containerStyle, background: "transparent", position: "relative", zIndex: 1 }}>
           <div style={{ minHeight: "60vh" }} />
@@ -1447,7 +1448,6 @@ Règles :
               {products.length === 0 ? "Aucune fiche enregistrée" : `${products.length} produit${products.length > 1 ? "s" : ""} au registre`}
               {!isOnline && " · hors ligne"}
             </p>
-            <p style={{ margin: "6px 0 0", fontSize: 12, fontStyle: "italic", color: C.accent }}>{sessionMessage}</p>
           </div>
           <button onClick={openNewForm} style={{ background: C.accent, color: C.onAccent, border: "none", borderRadius: 2, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} aria-label="Ajouter un produit">
             <IconPlus size={22} />
