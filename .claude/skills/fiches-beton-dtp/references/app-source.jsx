@@ -380,6 +380,35 @@ function buildPumpShareText(p) {
   lines.push("\n— Partagé depuis Fiches Béton (DTP Construction)");
   return lines.join("\n");
 }
+function buildRegistryShareText(products) {
+  if (!products || products.length === 0) return "Registre béton — DTP Construction\n\nAucune fiche enregistrée pour le moment.";
+  const groups = groupByBrand(products);
+  const lines = ["Registre béton — DTP Construction", `${products.length} produit${products.length > 1 ? "s" : ""} au registre`, ""];
+  groups.forEach((g) => {
+    lines.push(`— ${g.name} —`);
+    [...g.items]
+      .sort((a, b) => (a.nom || "").localeCompare(b.nom || ""))
+      .forEach((p) => {
+        const link = p.lienFiche ? ` — ${absoluteFicheUrl(p.lienFiche)}` : "";
+        lines.push(`• ${p.nom}${link}`);
+      });
+    lines.push("");
+  });
+  lines.push("— Partagé depuis Fiches Béton (DTP Construction)");
+  return lines.join("\n");
+}
+function buildPumpRegistryShareText(pumps) {
+  if (!pumps || pumps.length === 0) return "Registre pompes — DTP Construction\n\nAucune pompe enregistrée pour le moment.";
+  const sorted = [...pumps].sort((a, b) => (a.nom || "").localeCompare(b.nom || ""));
+  const lines = ["Registre pompes — DTP Construction", `${pumps.length} pompe${pumps.length > 1 ? "s" : ""} au registre`, ""];
+  sorted.forEach((p) => {
+    const bits = [p.fabricant, p.type].filter(Boolean).join(" · ");
+    const link = p.lienFiche ? ` — ${absoluteFicheUrl(p.lienFiche)}` : "";
+    lines.push(`• ${p.nom}${bits ? ` (${bits})` : ""}${link}`);
+  });
+  lines.push("\n— Partagé depuis Fiches Béton (DTP Construction)");
+  return lines.join("\n");
+}
 
 // ---------- Appels à l'API Anthropic avec la clé personnelle ----------
 async function callClaude(prompt, apiKey) {
@@ -1536,7 +1565,11 @@ Règles :
           </button>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 14, marginTop: 8 }}>
+          {shareFeedback && <span style={{ fontSize: 12, color: C.info }}>{shareFeedback}</span>}
+          <button onClick={() => shareText("Registre béton", buildRegistryShareText(products))} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: 0, fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, textDecoration: "underline", color: C.textSecondary, cursor: "pointer" }} aria-label="Partager tout le registre béton">
+            <IconShare size={13} /> Partager le registre
+          </button>
           <button onClick={() => setView("settings")} style={{ background: "none", border: "none", padding: 0, fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, textDecoration: "underline", color: C.textSecondary, cursor: "pointer" }}>
             Paramètres
           </button>
@@ -1792,6 +1825,12 @@ Règles :
             </div>
             <button onClick={openNewPumpForm} style={{ background: C.accent, color: C.onAccent, border: "none", borderRadius: 2, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} aria-label="Ajouter une pompe">
               <IconPlus size={22} />
+            </button>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 14, marginTop: 8 }}>
+            {shareFeedback && <span style={{ fontSize: 12, color: C.info }}>{shareFeedback}</span>}
+            <button onClick={() => shareText("Registre pompes", buildPumpRegistryShareText(pumps))} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: 0, fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, textDecoration: "underline", color: C.textSecondary, cursor: "pointer" }} aria-label="Partager tout le registre pompes">
+              <IconShare size={13} /> Partager le registre
             </button>
           </div>
           <div style={{ height: 3, background: C.accent, margin: "14px 0 12px" }} />
