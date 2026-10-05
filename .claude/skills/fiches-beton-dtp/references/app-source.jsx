@@ -124,6 +124,7 @@ const IconSearch = (p) => <Icon {...p}><circle cx="11" cy="11" r="8" /><line x1=
 const IconSettings = (p) => <Icon {...p}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></Icon>;
 const IconEye = (p) => <Icon {...p}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></Icon>;
 const IconThermometer = (p) => <Icon {...p}><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z" /></Icon>;
+const IconShare = (p) => <Icon {...p}><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></Icon>;
 
 const emptyProduct = {
   nom: "", fabricant: "", eauMin: "", eauMax: "", tempsBrassage: "", resistance: "",
@@ -338,6 +339,46 @@ function pickRandomMessage(name) {
   const pool = trimmedName ? WELCOME_MESSAGES : WELCOME_MESSAGES.filter((m) => !m.needsName);
   const entry = pool[Math.floor(Math.random() * pool.length)];
   return entry.text(trimmedName);
+}
+
+// ---------- Partage en lecture seule d'une fiche (produit ou pompe) ----------
+// Compile les champs en un message texte simple (SMS/courriel/WhatsApp...) — le destinataire
+// reçoit un message, pas un accès à l'app : il ne peut donc rien y modifier.
+function absoluteFicheUrl(lienFiche) {
+  if (!lienFiche) return "";
+  if (/^https?:\/\//i.test(lienFiche)) return lienFiche;
+  return window.location.origin + lienFiche.replace(/^\./, "");
+}
+function buildProductShareText(p) {
+  const lines = [p.nom || "Produit"];
+  if (p.fabricant) lines.push(p.fabricant);
+  lines.push("");
+  if (p.eauMin || p.eauMax) lines.push(`Eau par sac : ${p.eauMin || "?"}–${p.eauMax || "?"} L`);
+  if (p.tempsBrassage) lines.push(`Temps de brassage : ${p.tempsBrassage} min`);
+  if (p.tempMin || p.tempMax) lines.push(`Température : ${p.tempMin || "?"}–${p.tempMax || "?"} °C`);
+  if (p.resistance) lines.push(`Résistance à la compression : ${p.resistance}`);
+  if (p.tempsPrise) lines.push(`Temps de prise : ${p.tempsPrise}`);
+  if (p.tempsCure) lines.push(`Temps de cure recommandé : ${p.tempsCure}`);
+  if (p.formatSac) lines.push(`Poids du sac : ${p.formatSac}`);
+  if (p.rendement) lines.push(`Rendement : ${p.rendement}`);
+  if (p.applications) lines.push(`\nApplications recommandées :\n${p.applications}`);
+  if (p.notes) lines.push(`\nNotes du fabricant :\n${p.notes}`);
+  if (p.lienFiche) lines.push(`\nFiche technique complète : ${absoluteFicheUrl(p.lienFiche)}`);
+  lines.push("\n— Partagé depuis Fiches Béton (DTP Construction)");
+  return lines.join("\n");
+}
+function buildPumpShareText(p) {
+  const lines = [p.nom || "Pompe"];
+  if (p.fabricant) lines.push(p.fabricant);
+  if (p.type) lines.push(p.type);
+  lines.push("");
+  const order = ["debit", "pression", "puissance", "granulometrieMax", "distanceHorizontale", "distanceVerticale", "capaciteTremie", "poids", "dimensions"];
+  order.forEach((k) => { if (p[k]) lines.push(`${PUMP_FIELD_LABELS[k]} : ${p[k]}`); });
+  if (p.applications) lines.push(`\nApplications recommandées :\n${p.applications}`);
+  if (p.notes) lines.push(`\nNotes :\n${p.notes}`);
+  if (p.lienFiche) lines.push(`\nFiche technique complète : ${absoluteFicheUrl(p.lienFiche)}`);
+  lines.push("\n— Partagé depuis Fiches Béton (DTP Construction)");
+  return lines.join("\n");
 }
 
 // ---------- Appels à l'API Anthropic avec la clé personnelle ----------
@@ -571,6 +612,7 @@ function App() {
   const [nameInput, setNameInput] = useState("");
   const [nameSettingsInput, setNameSettingsInput] = useState("");
   const [sessionMessage, setSessionMessage] = useState("");
+  const [shareFeedback, setShareFeedback] = useState("");
 
   const [pumps, setPumps] = useState([]);
   const [pumpForm, setPumpForm] = useState(emptyPump);
@@ -721,6 +763,24 @@ function App() {
     setSessionMessage(pickRandomMessage(trimmed));
     setShowNamePrompt(false);
     window.storage.set(USER_NAME_KEY, trimmed).catch(() => {});
+  }
+
+  async function shareText(title, text) {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text });
+        return;
+      } catch (e) {
+        if (e && e.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareFeedback("Copié dans le presse-papier !");
+    } catch (e) {
+      setShareFeedback("Impossible de partager ou copier.");
+    }
+    setTimeout(() => setShareFeedback(""), 2500);
   }
 
   useEffect(() => {
@@ -1624,10 +1684,12 @@ Règles :
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <button onClick={() => setView("list")} style={backBtnStyle}><IconArrowLeft size={18} /> Registre</button>
           <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => shareText(selected.nom, buildProductShareText(selected))} style={iconBtnStyle} aria-label="Partager cette fiche"><IconShare size={17} /></button>
             <button onClick={() => openEditForm(selected)} style={iconBtnStyle} aria-label="Modifier"><IconPencil size={17} /></button>
             <button onClick={() => deleteProduct(selected.id)} style={{ ...iconBtnStyle, color: C.accent }} aria-label="Supprimer"><IconTrash2 size={17} /></button>
           </div>
         </div>
+        {shareFeedback && <p style={{ fontSize: 12, color: C.info, margin: "-8px 0 14px", textAlign: "right" }}>{shareFeedback}</p>}
 
         {selected.fabricant && (
           <div style={{ background: c.bg, color: c.text, padding: "8px 12px", display: "flex", alignItems: "center" }}>
@@ -1804,10 +1866,12 @@ Règles :
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <button onClick={() => setView("pumpList")} style={backBtnStyle}><IconArrowLeft size={18} /> Pompes</button>
           <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => shareText(selectedPump.nom, buildPumpShareText(selectedPump))} style={iconBtnStyle} aria-label="Partager cette fiche"><IconShare size={17} /></button>
             <button onClick={() => openEditPumpForm(selectedPump)} style={iconBtnStyle} aria-label="Modifier"><IconPencil size={17} /></button>
             <button onClick={() => deletePump(selectedPump.id)} style={{ ...iconBtnStyle, color: C.accent }} aria-label="Supprimer"><IconTrash2 size={17} /></button>
           </div>
         </div>
+        {shareFeedback && <p style={{ fontSize: 12, color: C.info, margin: "-8px 0 14px", textAlign: "right" }}>{shareFeedback}</p>}
 
         {selectedPump.photoUrl && (
           <div style={{ background: C.surfaceAlt, border: `1px solid ${C.border}`, borderBottom: "none", padding: 10 }}>
