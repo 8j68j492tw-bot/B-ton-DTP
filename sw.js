@@ -1,4 +1,4 @@
-const CACHE_NAME = "fiches-beton-v7";
+const CACHE_NAME = "fiches-beton-v8";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   "./vendor/pdfjs/pdf.min.js",
@@ -14,6 +14,12 @@ const APP_SHELL = [
   "./fiches/bunker-b100-fiche.pdf",
   "./fiches/bunker-b30-fiche.pdf",
   "./fiches/mapei-planitop-shotcrete.pdf",
+  "./fiches/sikadur-42-grout-pak-le.pdf",
+  "./fiches/king-inpakt-construction.pdf",
+  "./fiches/king-inpakt-precision.pdf",
+  "./fiches/king-nordic.pdf",
+  "./fiches/king-hs-cable.pdf",
+  "./fiches/king-ms-cable.pdf",
 ];
 
 self.addEventListener("install", (event) => {
