@@ -174,7 +174,7 @@ const PRODUCT_CATALOG = [
   { nom: "Planitop® 18 ES", fabricant: "Mapei", eauMin: "2.60", eauMax: "2.73", tempsBrassage: "2-3", resistance: "20.7 MPa (3h) / 34.5 MPa (1j) / 37.9 MPa (7j) / 48.3 MPa (28j) — ASTM C109, conforme ASTM C928 R3", formatSac: "22.7 kg (50 lb)", rendement: "0.0116 m³ par sac (pur) · 0.0144 m³ par sac étendu à 50% avec 11.3 kg de gravier 10 mm", tempsPrise: "Initiale : >45 min · Finale : <110 min (ASTM C191)", tempsCure: "Cure humide min. 4 h, ou agent de cure conforme ASTM C308; protéger du gel/dégel pendant 24 h", applications: "Mortier de réparation en béton horizontal, intérieur et extérieur, pour réparations structurales de 6 mm à 2,5 cm en épaisseur nette, extensible jusqu'à 15 cm avec gravier. Conçu pour une remise en service rapide (circulation véhiculaire dès 6 h à 23°C) avec un temps de travail prolongé, utile par temps chaud. [Traduction du TDS anglais — fiche FR officielle non accessible lors de la recherche, voir notes.]", notes: "Fiche US utilisée (pages mapei.com/ca bloquées par Cloudflare lors de la recherche — fiche FR non confirmée, mêmes valeurs probables). Temps de travail (pot life) : 30 min à 23°C. La fiche ne distingue pas de température du produit après malaxage — plage unique ambiante/application 7-35°C réutilisée par convention (comme Planitop 11/Shotcrete). Résistance en flexion 28j : 6.90 MPa. Résistance d'adhérence (slant shear) : 12.4 MPa (1j) / 17.2 MPa (7j). Gel/dégel (300 cycles) : 98%. Aucun écaillage (ASTM C672, 25 cycles). COV : 0 g/L. Contient un inhibiteur de corrosion.", lienFiche: "./fiches/mapei-planitop-18-es.pdf", tempMin: "7", tempMax: "35" },
   { nom: "Planitop® 18", fabricant: "Mapei", eauMin: "2.37", eauMax: "2.84", tempsBrassage: "2-3", resistance: "17.2 MPa (1h) / 37.9 MPa (2h) / 53.8 MPa (1j) / 64.8 MPa (28j) — ASTM C109 (pas de données à 3j/7j), conforme ASTM C928 R3", formatSac: "22.7 kg (50 lb)", rendement: "0.012 m³ par sac (pur) · 0.018 m³ par sac étendu à 80% avec jusqu'à 18.1 kg de gravier 10 mm", tempsPrise: "Initiale : >12 min · Finale : ≤30 min (ASTM C191)", tempsCure: "Toile de jute humide min. 1 h après prise initiale; protéger du gel min. 12 h; ou agent de cure conforme ASTM C309", applications: "Mortier de réparation à durcissement très rapide pour réparations horizontales de béton, intérieures et extérieures — tabliers de pont, garages de stationnement, joints de dalles. Épaisseur nette de 12 mm à 5 cm, extensible jusqu'à 20 cm avec gravier. Circulation possible dès 1 heure. [Traduction du TDS anglais — fiche FR officielle non accessible lors de la recherche, voir notes.]", notes: "Fiche US utilisée (pages mapei.com/ca bloquées par Cloudflare lors de la recherche — fiche FR non confirmée, mêmes valeurs probables). Aucun temps de travail/pot life distinct publié sur cette fiche (contrairement à la version ES). La fiche ne distingue pas de température du produit après malaxage — plage unique ambiante/application 0-35°C réutilisée par convention. Recouvrable en moins de 4 h. Module d'élasticité 28j : 25.6 GPa. Perméabilité aux chlorures (28j) : très faible, <1000 coulombs. Gel/dégel (300 cycles) : >99%. COV : 0 g/L. Contient un inhibiteur de corrosion.", lienFiche: "./fiches/mapei-planitop-18.pdf", tempMin: "0", tempMax: "35" },
   { nom: "SikaQuick®-1000", fabricant: "Sika Canada", eauMin: "2.6", eauMax: "2.87", tempsBrassage: "3", resistance: "30 MPa (1j) / 40 MPa (7j) / 50 MPa (28j)", formatSac: "25 kg (55 lb)", rendement: "≈13 L par sac (pur) · ≈17 L par sac étendu avec 11 kg de granulat 10 mm", tempsPrise: "Initiale : 45-65 min · Finale : 55-100 min (ASTM C266)", tempsCure: "Protéger de la pluie min. 4 h; ne pas faire de cure humide — agent de cure conforme ASTM C309 (Sika Florseal WB-18/-25) si nécessaire. Circulation piétonne : 4 h · véhiculaire : 6 h (à 23°C)", applications: "Mortier cimentaire de réparation du béton, à un composant, à résistance initiale élevée et à durcissement rapide. Utilisé sur le béton en-dessous, au-dessus ou au niveau du sol pour le recouvrement et la réparation des routes, les réparations structurales de stationnements, ponts, barrages et rampes, les travaux de réparation sur toute la profondeur, et la réparation des surfaces horizontales de béton ou de mortier. Convient particulièrement aux applications par temps chaud exigeant un temps d'emploi prolongé.", notes: "Équivalent Sika de Planitop 18/18 ES (Mapei) — mortier horizontal à durcissement rapide, conforme ASTM C928. Fiche technique canadienne (can.sika.com), édition anglaise octobre 2023 utilisée comme référence (l'édition française sur le même site est une version plus ancienne de 2020, valeurs identiques où comparables). Temps de travail global (malaxage+pose+finition) : max 30 min. « Température du produit » publiée par Sika (plage de conditionnement/application du matériau, pas une mesure d'exotherme après malaxage) : 18-29°C — reprise ici par convention, comme pour les autres produits Sika du registre. Température ambiante/substrat : 7-30°C. Résistance en flexion 28j : 8.0 MPa. Module d'élasticité 28j : 32.7 GPa. Résistance d'adhérence (cisaillement) 28j : 15.5 MPa. Retrait : 0,07%. Gel/dégel (300 cycles) : 98%. Écaillage (ASTM C672, 50 cycles) : 0.39 kg/m². Conforme exigences CSA/CFIA/USDA pour usine alimentaire.", lienFiche: "./fiches/sikaquick-1000.pdf", tempMin: "18", tempMax: "29" },
-  { nom: "SikaQuick® VOH", fabricant: "Sika Corporation (É.-U.)", eauMin: "2.8", eauMax: "3.1", tempsBrassage: "3", resistance: "10.3 MPa (3h) / 20.7 MPa (1j) / 31.0 MPa (7j) / 37.9 MPa (28j) — ASTM C109, conforme ASTM C928 type R2", formatSac: "20 kg (44 lb)", rendement: "0.01 m³ par sac", tempsPrise: "Prise : 10-25 min · Prise finale : <35 min (ASTM C266) — temps d'application ≈15 min, temps de finition 20-30 min", tempsCure: "Cure humide (toile de jute + polyéthylène, brouillard d'eau fine, ou Sika Antisol-250W) immédiatement après finition; protéger du soleil/vent/pluie/gel. Recouvrement acrylique base eau : 4 h · époxy/polyuréthane : 6 h", applications: "Réparations rapides de surfaces de béton et de mortier verticales et en sous-face, à tous les niveaux (au-dessus, au-dessous ou au niveau du sol). Matériau de réparation pour façades de bâtiments, stationnements étagés, installations industrielles, ponts, etc. Mortier à prise rapide pour défauts de construction neuve. [Traduction — aucune fiche technique française trouvée, produit non répertorié sur can.sika.com.]", notes: "Équivalent Sika de Planitop 18/18 ES (Mapei) pour réparations verticales/en sous-face — PRODUIT NON TROUVÉ sur le catalogue can.sika.com lors de la recherche (vendu aux É.-U. seulement à ce jour); disponibilité/commande au Canada à confirmer auprès d'un représentant Sika. Ne pas confondre avec « SikaQuick® Pro VOH », produit distinct plus récent (gamme de détail Sika Pro Select) dont la fiche ne revendique pas la conformité ASTM C928. Fibré, modifié aux polymères, contient un inhibiteur de corrosion. Épaisseur max : 76 mm (vertical) / 51 mm (sous-face) en une couche; min. 3 mm. « Température du produit » publiée par Sika (plage de conditionnement/application, pas une mesure après malaxage) : 18-24°C — reprise ici par convention. Température ambiante/substrat : min. 7°C (ou -6,7°C avec accélérateur SikaQuick WinterBoost). Résistance en flexion 28j : 6.9 MPa. Module d'élasticité 7j : 15.2 GPa. Retrait : <0,05%. Densité du mélange frais : 2.0 kg/L.", lienFiche: "./fiches/sikaquick-voh.pdf", tempMin: "18", tempMax: "24" },
+  { nom: "SikaQuick® VOH", fabricant: "Sika Canada", eauMin: "2.8", eauMax: "3.1", tempsBrassage: "3", resistance: "10.3 MPa (3h) / 20.7 MPa (1j) / 31.0 MPa (7j) / 37.9 MPa (28j) — ASTM C109, conforme ASTM C928 type R2", formatSac: "20 kg (44 lb)", rendement: "0.01 m³ par sac", tempsPrise: "Prise : 10-25 min · Prise finale : <35 min (ASTM C266) — temps d'application ≈15 min, temps de finition 20-30 min", tempsCure: "Cure humide (toile de jute + polyéthylène, brouillard d'eau fine, ou Sika Antisol-250W) immédiatement après finition; protéger du soleil/vent/pluie/gel. Recouvrement acrylique base eau : 4 h · époxy/polyuréthane : 6 h", applications: "Réparations rapides de surfaces de béton et de mortier verticales et en sous-face, à tous les niveaux (au-dessus, au-dessous ou au niveau du sol). Matériau de réparation pour façades de bâtiments, stationnements étagés, installations industrielles, ponts, etc. Mortier à prise rapide pour défauts de construction neuve. [Traduction — aucune fiche technique française trouvée, produit non répertorié sur can.sika.com.]", notes: "Équivalent Sika de Planitop 18/18 ES (Mapei) pour réparations verticales/en sous-face — PRODUIT NON TROUVÉ sur le catalogue can.sika.com lors de la recherche (vendu aux É.-U. seulement à ce jour); disponibilité/commande au Canada à confirmer auprès d'un représentant Sika. Ne pas confondre avec « SikaQuick® Pro VOH », produit distinct plus récent (gamme de détail Sika Pro Select) dont la fiche ne revendique pas la conformité ASTM C928. Fibré, modifié aux polymères, contient un inhibiteur de corrosion. Épaisseur max : 76 mm (vertical) / 51 mm (sous-face) en une couche; min. 3 mm. « Température du produit » publiée par Sika (plage de conditionnement/application, pas une mesure après malaxage) : 18-24°C — reprise ici par convention. Température ambiante/substrat : min. 7°C (ou -6,7°C avec accélérateur SikaQuick WinterBoost). Résistance en flexion 28j : 6.9 MPa. Module d'élasticité 7j : 15.2 GPa. Retrait : <0,05%. Densité du mélange frais : 2.0 kg/L.", lienFiche: "./fiches/sikaquick-voh.pdf", tempMin: "18", tempMax: "24" },
 ];
 
 // Le registre béton se pré-remplit désormais avec la totalité de PRODUCT_CATALOG (même principe
@@ -183,6 +183,15 @@ const PRODUCT_CATALOG = [
 // jamais dans le dépôt) ne le suivait pas. Les produits obtiennent leur propre bannière de marque
 // automatiquement (groupement par `fabricant`), sans logique dédiée nécessaire.
 const AUTO_ADDED_PRODUCT_NAMES = PRODUCT_CATALOG.map((p) => p.nom);
+
+// Fusions de bannières de marque : quand un produit déjà dans le registre d'un utilisateur existant
+// porte un nom de fabricant devenu obsolète (ex. "Sika Corporation (É.-U.)" fusionné dans "Sika Canada"
+// pour n'avoir qu'une seule bannière Sika), ce tableau fait migrer silencieusement ses produits ET sa
+// personnalisation (photo/couleur dans Paramètres → Marques) vers le nouveau nom, sans jamais écraser
+// une personnalisation déjà existante sous le nouveau nom. Ajouter une entrée ici pour toute future
+// fusion de marque plutôt que d'éditer seulement PRODUCT_CATALOG (qui ne corrige rien pour les
+// utilisateurs qui ont déjà le produit dans leur registre).
+const BRAND_MERGES = [{ from: "Sika Corporation (É.-U.)", to: "Sika Canada" }];
 
 function normalizeForMatch(s) {
   return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
@@ -813,12 +822,19 @@ function App() {
       } catch (e) {
         loadOkRef.current = false;
       }
+      let brandPatched = false;
+      current = current.map((p) => {
+        const match = BRAND_MERGES.find((m) => (p.fabricant || "").trim().toLowerCase() === m.from.trim().toLowerCase());
+        if (!match) return p;
+        brandPatched = true;
+        return { ...p, fabricant: match.to };
+      });
       const existingNames = new Set(current.map((p) => normalizeForMatch(p.nom)));
       const toSeed = AUTO_ADDED_PRODUCT_NAMES
         .map((name) => findCatalogMatch(name))
         .filter((c) => c && !existingNames.has(normalizeForMatch(c.nom)))
         .map((c) => ({ ...c, id: `catalog-auto-${normalizeForMatch(c.nom)}` }));
-      if (toSeed.length > 0) {
+      if (toSeed.length > 0 || brandPatched) {
         const merged = [...current, ...toSeed];
         setProducts(merged);
         window.storage.set(STORAGE_KEY, JSON.stringify(merged)).catch(() => {});
@@ -897,8 +913,19 @@ function App() {
         const res = await window.storage.get(BRAND_ASSETS_KEY);
         if (res && res.value) {
           const parsed = JSON.parse(res.value);
+          let patched = false;
+          BRAND_MERGES.forEach((m) => {
+            const fromKey = m.from.trim().toLowerCase();
+            const toKey = m.to.trim().toLowerCase();
+            if (parsed[fromKey]) {
+              if (!parsed[toKey]) parsed[toKey] = parsed[fromKey];
+              delete parsed[fromKey];
+              patched = true;
+            }
+          });
           setBrandAssets(parsed);
           brandAssetsRef.current = parsed;
+          if (patched) window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(parsed)).catch(() => {});
         }
       } catch (e) {}
     })();
