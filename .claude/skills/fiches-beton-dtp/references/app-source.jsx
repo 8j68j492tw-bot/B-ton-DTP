@@ -412,7 +412,11 @@ function pickRandomMessage(name) {
 function absoluteFicheUrl(lienFiche) {
   if (!lienFiche) return "";
   if (/^https?:\/\//i.test(lienFiche)) return lienFiche;
-  return window.location.origin + lienFiche.replace(/^\./, "");
+  // Toujours construire le lien à partir de l'adresse officielle (APP_URL), jamais de
+  // window.location.origin : l'app peut être ouverte depuis une autre adresse (GitHub Pages,
+  // un aperçu Vercel, un favori périmé...) et un lien construit sur cette origine-là enverrait
+  // la personne qui reçoit le partage au mauvais endroit plutôt que sur l'adresse officielle.
+  return APP_URL.replace(/\/$/, "") + lienFiche.replace(/^\./, "");
 }
 function buildProductShareText(p) {
   const lines = [p.nom || "Produit"];
