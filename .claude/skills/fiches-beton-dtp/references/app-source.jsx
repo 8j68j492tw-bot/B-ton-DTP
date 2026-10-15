@@ -125,6 +125,7 @@ const IconSettings = (p) => <Icon {...p}><circle cx="12" cy="12" r="3" /><path d
 const IconEye = (p) => <Icon {...p}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></Icon>;
 const IconThermometer = (p) => <Icon {...p}><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z" /></Icon>;
 const IconShare = (p) => <Icon {...p}><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></Icon>;
+const IconClipboard = (p) => <Icon {...p}><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></Icon>;
 
 const emptyProduct = {
   nom: "", fabricant: "", eauMin: "", eauMax: "", tempsBrassage: "", resistance: "",
@@ -289,6 +290,17 @@ function extractDominantColor(imgEl) {
     return null;
   }
 }
+// ---------- Section Chantier : journal de pompage/pose, registre séparé du béton et des pompes ----------
+const CHANTIERS_KEY = "chantiers-beton";
+const emptyChantier = {
+  nomJob: "", date: "", heure: "", produit: "", nombrePoches: "", eauUtilisee: "",
+  temperature: "", notes: "", manquements: "",
+};
+function currentTimeStr() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 function groupByBrand(list) {
   const groups = {};
   list.forEach((p) => {
@@ -691,6 +703,13 @@ function App() {
   const [pdfReturnView, setPdfReturnView] = useState("detail");
   const [pumpSearchQuery, setPumpSearchQuery] = useState("");
   const pumpsRef = useRef(pumps);
+
+  const [chantiers, setChantiers] = useState([]);
+  const [chantierForm, setChantierForm] = useState(emptyChantier);
+  const [editingChantierId, setEditingChantierId] = useState(null);
+  const [selectedChantierId, setSelectedChantierId] = useState(null);
+  const [chantierSaveError, setChantierSaveError] = useState(false);
+  const [chantierSearchQuery, setChantierSearchQuery] = useState("");
   const pumpsDirtyRef = useRef(false);
 
   const productsRef = useRef(products);
@@ -774,6 +793,15 @@ function App() {
         setPumps(seeded);
         window.storage.set(POMPES_KEY, JSON.stringify(seeded)).catch(() => {});
       }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await window.storage.get(CHANTIERS_KEY);
+        if (res && res.value) setChantiers(JSON.parse(res.value));
+      } catch (e) {}
     })();
   }, []);
 
@@ -1273,6 +1301,42 @@ function App() {
   }
   function deletePump(id) { persistPumps(pumps.filter((p) => p.id !== id)); setView("pumpList"); }
 
+  async function persistChantiers(next) {
+    setChantiers(next);
+    try {
+      const res = await window.storage.set(CHANTIERS_KEY, JSON.stringify(next));
+      setChantierSaveError(!res);
+    } catch (e) {
+      setChantierSaveError(true);
+    }
+  }
+
+  function openNewChantierForm(prefill) {
+    setChantierForm({ ...emptyChantier, date: todayStr(), heure: currentTimeStr(), ...(prefill || {}) });
+    setEditingChantierId(null);
+    setView("chantierForm");
+  }
+  function openEditChantierForm(c) { setChantierForm(c); setEditingChantierId(c.id); setView("chantierForm"); }
+  function openChantierDetail(id) { setSelectedChantierId(id); setView("chantierDetail"); }
+  function updateChantierField(key, val) { setChantierForm((f) => ({ ...f, [key]: val })); }
+
+  function saveChantierForm() {
+    if (!chantierForm.nomJob.trim()) return;
+    if (editingChantierId) persistChantiers(chantiers.map((c) => (c.id === editingChantierId ? { ...chantierForm, id: editingChantierId } : c)));
+    else persistChantiers([...chantiers, { ...chantierForm, id: Date.now().toString() }]);
+    setView("chantierList");
+  }
+  function deleteChantier(id) { persistChantiers(chantiers.filter((c) => c.id !== id)); setView("chantierList"); }
+
+  function openChantierFromProduct(p) {
+    const total = bagCount > 1 ? computeBagTotal(p, bagCount) : null;
+    openNewChantierForm({
+      produit: p.nom,
+      nombrePoches: bagCount > 1 ? String(bagCount) : "",
+      eauUtilisee: total ? total.total : (p.eauMax || p.eauMin || ""),
+    });
+  }
+
   function handlePumpColor(hexColor) {
     setPumpForm((f) => ({ ...f, color: hexColor }));
   }
@@ -1346,6 +1410,7 @@ Règles :
 
   const selected = products.find((p) => p.id === selectedId);
   const selectedPump = pumps.find((p) => p.id === selectedPumpId);
+  const selectedChantier = chantiers.find((c) => c.id === selectedChantierId);
   const containerStyle = {
     fontFamily: "'IBM Plex Sans', sans-serif",
     background: C.bg,
@@ -1606,6 +1671,7 @@ Règles :
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           <TabPill label="Béton" active={true} onClick={() => {}} neutral />
           <TabPill label="Pompes" active={false} onClick={() => setView("pumpList")} neutral />
+          <TabPill label="Chantier" active={false} onClick={() => setView("chantierList")} neutral />
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
@@ -1782,6 +1848,7 @@ Règles :
           <button onClick={() => setView("list")} style={backBtnStyle}><IconArrowLeft size={18} /> Registre</button>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => shareText(selected.nom, buildProductShareText(selected))} style={iconBtnStyle} aria-label="Partager cette fiche"><IconShare size={17} /></button>
+            <button onClick={() => openChantierFromProduct(selected)} style={iconBtnStyle} aria-label="Créer une fiche de chantier pour ce produit"><IconClipboard size={17} /></button>
             <button onClick={() => openEditForm(selected)} style={iconBtnStyle} aria-label="Modifier"><IconPencil size={17} /></button>
             <button onClick={() => deleteProduct(selected.id)} style={{ ...iconBtnStyle, color: C.accent }} aria-label="Supprimer"><IconTrash2 size={17} /></button>
           </div>
@@ -1886,6 +1953,7 @@ Règles :
           <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
             <TabPill label="Béton" active={false} onClick={() => setView("list")} neutral />
             <TabPill label="Pompes" active={true} onClick={() => {}} neutral />
+            <TabPill label="Chantier" active={false} onClick={() => setView("chantierList")} neutral />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
             <div>
@@ -2128,6 +2196,164 @@ Règles :
           <Field label="Lien vers la fiche technique (PDF)" value={pumpForm.lienFiche} onChange={(v) => updatePumpField("lienFiche", v)} placeholder="https://..." />
           <button onClick={savePumpForm} disabled={!pumpForm.nom.trim() || pumpDuplicate} style={{ width: "100%", marginTop: 8, background: pumpForm.nom.trim() && !pumpDuplicate ? C.accent : C.disabledBg, color: C.onAccent, border: "none", padding: "13px 0", fontFamily: "'Oswald', sans-serif", fontSize: 15, letterSpacing: 0.5, cursor: pumpForm.nom.trim() && !pumpDuplicate ? "pointer" : "not-allowed" }}>
             {editingPumpId ? "Enregistrer les modifications" : "Ajouter au registre"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- VUE REGISTRE DE CHANTIER ----------
+  if (view === "chantierList") {
+    const qc = chantierSearchQuery.trim().toLowerCase();
+    const filteredChantiers = qc
+      ? chantiers.filter((c) => (c.nomJob || "").toLowerCase().includes(qc) || (c.produit || "").toLowerCase().includes(qc))
+      : chantiers;
+    const sortedChantiers = [...filteredChantiers].sort((a, b) => `${b.date || ""}T${b.heure || ""}`.localeCompare(`${a.date || ""}T${a.heure || ""}`));
+    return (
+      <div style={containerStyle}>
+        <div style={{ position: "sticky", top: 0, zIndex: 2, background: hexToRgba(C.bg, 0.94), backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", paddingTop: "max(16px, env(safe-area-inset-top))", borderBottom: `1px solid ${C.border}`, marginBottom: 12 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <TabPill label="Béton" active={false} onClick={() => setView("list")} neutral />
+            <TabPill label="Pompes" active={false} onClick={() => setView("pumpList")} neutral />
+            <TabPill label="Chantier" active={true} onClick={() => {}} neutral />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
+            <div>
+              <h1 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 21, margin: 0, letterSpacing: 0.4 }}>Registre de chantier</h1>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: C.textSecondary }}>
+                {chantiers.length === 0 ? "Aucune fiche enregistrée" : `${chantiers.length} fiche${chantiers.length > 1 ? "s" : ""} au registre`}
+              </p>
+            </div>
+            <button onClick={() => openNewChantierForm()} style={{ background: C.accent, color: C.onAccent, border: "none", borderRadius: 2, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} aria-label="Ajouter une fiche de chantier">
+              <IconPlus size={22} />
+            </button>
+          </div>
+          <div style={{ height: 3, background: C.accent, margin: "14px 0 12px" }} />
+          {chantiers.length > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.surfaceAlt, border: `1px solid ${C.border}`, padding: "10px 12px", marginBottom: 12 }}>
+              <IconSearch size={16} color={C.textMuted} />
+              <input
+                type="text"
+                value={chantierSearchQuery}
+                onChange={(e) => setChantierSearchQuery(e.target.value)}
+                placeholder="Rechercher une job ou un produit..."
+                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 14, color: C.text }}
+              />
+              {chantierSearchQuery && (
+                <button onClick={() => setChantierSearchQuery("")} style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", padding: 0, display: "flex" }} aria-label="Effacer la recherche">
+                  <IconX size={16} />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {chantiers.length === 0 && (
+          <div style={{ textAlign: "center", padding: "50px 10px", color: C.textSecondary }}>
+            <IconClipboard size={36} style={{ marginBottom: 10, opacity: 0.6 }} />
+            <p style={{ fontSize: 14, margin: 0 }}>Crée ta première fiche de chantier (ex. après un pompage) pour commencer le registre.</p>
+          </div>
+        )}
+
+        {chantiers.length > 0 && sortedChantiers.length === 0 && (
+          <div style={{ textAlign: "center", padding: "40px 10px", color: C.textSecondary }}>
+            <p style={{ fontSize: 14, margin: 0 }}>Aucun résultat pour « {chantierSearchQuery} ».</p>
+          </div>
+        )}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {sortedChantiers.map((c) => (
+            <button key={c.id} onClick={() => openChantierDetail(c.id)} style={{ background: C.surface, border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.accent}`, borderRadius: 0, padding: "12px 14px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 17, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.nomJob || "Sans nom"}</div>
+                <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>
+                  {formatDate(c.date)}{c.heure && ` à ${c.heure}`}
+                </div>
+                {(c.produit || c.nombrePoches) && (
+                  <div style={{ fontSize: 12, color: C.textMuted, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {c.produit}{c.produit && c.nombrePoches && " · "}{c.nombrePoches && `${c.nombrePoches} poche${Number(c.nombrePoches) > 1 ? "s" : ""}`}
+                  </div>
+                )}
+              </div>
+              <IconChevronRight size={20} color={C.textMuted} />
+            </button>
+          ))}
+        </div>
+
+        {chantierSaveError && (
+          <p style={{ fontSize: 12, color: C.accent, marginTop: 16 }}>La sauvegarde a échoué.</p>
+        )}
+      </div>
+    );
+  }
+
+  // ---------- VUE DÉTAIL CHANTIER ----------
+  if (view === "chantierDetail" && selectedChantier) {
+    return (
+      <div style={containerStyle}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <button onClick={() => setView("chantierList")} style={backBtnStyle}><IconArrowLeft size={18} /> Chantier</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => openEditChantierForm(selectedChantier)} style={iconBtnStyle} aria-label="Modifier"><IconPencil size={17} /></button>
+            <button onClick={() => deleteChantier(selectedChantier.id)} style={{ ...iconBtnStyle, color: C.accent }} aria-label="Supprimer"><IconTrash2 size={17} /></button>
+          </div>
+        </div>
+
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "18px 16px 6px" }}>
+          <h1 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: 24, margin: 0, letterSpacing: 0.3 }}>{selectedChantier.nomJob}</h1>
+          <p style={{ margin: "6px 0 0", fontSize: 13, color: C.textSecondary }}>
+            {formatDate(selectedChantier.date)}{selectedChantier.heure && ` à ${selectedChantier.heure}`}
+          </p>
+          <div style={{ height: 14 }} />
+
+          <div style={{ marginBottom: 6 }}>
+            <SpecRow label="Produit" value={selectedChantier.produit} mono />
+            <SpecRow label="Nombre de poches" value={selectedChantier.nombrePoches} mono />
+            <SpecRow label="Eau utilisée" value={selectedChantier.eauUtilisee} mono />
+            <SpecRow label="Température" value={selectedChantier.temperature} mono />
+          </div>
+
+          {selectedChantier.notes && (
+            <div style={{ margin: "18px 0 6px" }}>
+              <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, letterSpacing: 0.5, color: C.textSecondary, margin: "0 0 6px" }}>Notes</p>
+              <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 14px" }}>{selectedChantier.notes}</p>
+            </div>
+          )}
+          {selectedChantier.manquements && (
+            <div style={{ margin: "0 0 6px" }}>
+              <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, letterSpacing: 0.5, color: C.textSecondary, margin: "0 0 6px" }}>Manquements / améliorations</p>
+              <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 14px" }}>{selectedChantier.manquements}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- VUE FORMULAIRE CHANTIER ----------
+  if (view === "chantierForm") {
+    return (
+      <div style={containerStyle}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <button onClick={() => setView(editingChantierId ? "chantierDetail" : "chantierList")} style={backBtnStyle}><IconX size={18} /> Annuler</button>
+          <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, margin: 0 }}>{editingChantierId ? "Modifier la fiche" : "Nouvelle fiche de chantier"}</h2>
+        </div>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "16px" }}>
+          <Field label="Nom / numéro de la job" value={chantierForm.nomJob} onChange={(v) => updateChantierField("nomJob", v)} placeholder="ex. Chantier boul. des Sources, job #1234" />
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ flex: 1 }}><Field label="Date" type="date" value={chantierForm.date} onChange={(v) => updateChantierField("date", v)} /></div>
+            <div style={{ flex: 1 }}><Field label="Heure" type="time" value={chantierForm.heure} onChange={(v) => updateChantierField("heure", v)} /></div>
+          </div>
+          <Field label="Produit utilisé" value={chantierForm.produit} onChange={(v) => updateChantierField("produit", v)} placeholder="ex. Sikacrete®-08 SCC" />
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ flex: 1 }}><Field label="Nombre de poches" type="number" value={chantierForm.nombrePoches} onChange={(v) => updateChantierField("nombrePoches", v)} placeholder="ex. 8" /></div>
+            <div style={{ flex: 1 }}><Field label="Eau utilisée" value={chantierForm.eauUtilisee} onChange={(v) => updateChantierField("eauUtilisee", v)} placeholder="ex. 20 L" /></div>
+          </div>
+          <Field label="Température" value={chantierForm.temperature} onChange={(v) => updateChantierField("temperature", v)} placeholder="ex. 18°C, ensoleillé" />
+          <TextAreaField label="Notes" value={chantierForm.notes} onChange={(v) => updateChantierField("notes", v)} placeholder="Ça s'est bien passé, mais..." />
+          <TextAreaField label="Manquements / améliorations" value={chantierForm.manquements} onChange={(v) => updateChantierField("manquements", v)} placeholder="Problèmes rencontrés, points à améliorer..." />
+          <button onClick={saveChantierForm} disabled={!chantierForm.nomJob.trim()} style={{ width: "100%", marginTop: 8, background: chantierForm.nomJob.trim() ? C.accent : C.disabledBg, color: C.onAccent, border: "none", padding: "13px 0", fontFamily: "'Oswald', sans-serif", fontSize: 15, letterSpacing: 0.5, cursor: chantierForm.nomJob.trim() ? "pointer" : "not-allowed" }}>
+            {editingChantierId ? "Enregistrer les modifications" : "Ajouter au registre"}
           </button>
         </div>
       </div>
