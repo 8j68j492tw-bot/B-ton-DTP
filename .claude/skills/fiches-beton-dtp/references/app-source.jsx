@@ -99,6 +99,7 @@ const C = {
   accent: "#E31B23",
   onAccent: "#FBEAEA",
   info: "#6FA8D8",
+  success: "#4CAF7D",
   disabledBg: "#3A383D",
 };
 
@@ -126,6 +127,8 @@ const IconEye = (p) => <Icon {...p}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-1
 const IconThermometer = (p) => <Icon {...p}><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z" /></Icon>;
 const IconShare = (p) => <Icon {...p}><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></Icon>;
 const IconClipboard = (p) => <Icon {...p}><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></Icon>;
+const IconCheck = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12" /></Icon>;
+const IconFolder = (p) => <Icon {...p}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></Icon>;
 
 const emptyProduct = {
   nom: "", fabricant: "", eauMin: "", eauMax: "", tempsBrassage: "", resistance: "",
@@ -294,11 +297,47 @@ function extractDominantColor(imgEl) {
 const CHANTIERS_KEY = "chantiers-beton";
 const emptyChantier = {
   nomJob: "", date: "", heure: "", produit: "", nombrePoches: "", eauUtilisee: "",
-  temperature: "", notes: "", manquements: "",
+  temperature: "", notes: "", manquements: "", statut: "", photosProduit: [], photosResultat: [],
 };
 function currentTimeStr() {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+function groupByJob(list) {
+  const groups = {};
+  list.forEach((c) => {
+    const key = (c.nomJob || "").trim() || "Sans nom";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(c);
+  });
+  return Object.keys(groups).map((key) => ({
+    name: key,
+    items: [...groups[key]].sort((a, b) => `${b.date || ""}T${b.heure || ""}`.localeCompare(`${a.date || ""}T${a.heure || ""}`)),
+  }));
+}
+function resizeImageToDataUrl(file, maxDim, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; } else { w = Math.round((w * maxDim) / h); h = maxDim; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 function groupByBrand(list) {
@@ -599,12 +638,48 @@ function Field({ label, value, onChange, placeholder, type = "text", unit, onFoc
   );
 }
 
-function TextAreaField({ label, value, onChange, placeholder }) {
+function TextAreaField({ label, value, onChange, placeholder, rows = 3, accent }) {
   return (
     <label style={{ display: "block", marginBottom: 14 }}>
-      <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, color: C.textSecondary, display: "block", marginBottom: 4 }}>{label}</span>
-      <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={3} style={{ width: "100%", border: `1.5px solid ${C.borderStrong}`, borderRadius: 2, padding: "8px 10px", outline: "none", background: C.surfaceAlt, fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 14, color: C.text, resize: "vertical", boxSizing: "border-box" }} />
+      <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, color: accent ? C.accent : C.textSecondary, display: "block", marginBottom: 4 }}>{label}</span>
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows} style={{ width: "100%", border: `1.5px solid ${accent ? C.accent : C.borderStrong}`, borderRadius: 2, padding: "8px 10px", outline: "none", background: C.surfaceAlt, fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 14, color: C.text, resize: "vertical", boxSizing: "border-box" }} />
     </label>
+  );
+}
+
+function PhotoGrid({ label, photos, onAdd, onRemove }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, color: C.textSecondary, display: "block", marginBottom: 6 }}>{label}</span>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {(photos || []).map((src, i) => (
+          <div key={i} style={{ position: "relative", width: 72, height: 72 }}>
+            <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", border: `1px solid ${C.border}` }} />
+            <button type="button" onClick={() => onRemove(i)} aria-label="Retirer cette photo" style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: C.accent, color: C.onAccent, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
+              <IconX size={12} />
+            </button>
+          </div>
+        ))}
+        <label style={{ width: 72, height: 72, border: `1.5px dashed ${C.borderStrong}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.textMuted, flexShrink: 0 }}>
+          <IconPlus size={22} />
+          <input type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => { onAdd(e.target.files); e.target.value = ""; }} />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+function PhotoGallery({ label, photos }) {
+  if (!photos || photos.length === 0) return null;
+  return (
+    <div style={{ margin: "18px 0 6px" }}>
+      <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, letterSpacing: 0.5, color: C.textSecondary, margin: "0 0 8px" }}>{label}</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+        {photos.map((src, i) => (
+          <img key={i} src={src} alt="" style={{ width: "calc(50% - 4px)", aspectRatio: "1 / 1", objectFit: "cover", display: "block", border: `1px solid ${C.border}` }} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -710,6 +785,7 @@ function App() {
   const [selectedChantierId, setSelectedChantierId] = useState(null);
   const [chantierSaveError, setChantierSaveError] = useState(false);
   const [chantierSearchQuery, setChantierSearchQuery] = useState("");
+  const [closedJobs, setClosedJobs] = useState({});
   const pumpsDirtyRef = useRef(false);
 
   const productsRef = useRef(products);
@@ -1327,6 +1403,19 @@ function App() {
     setView("chantierList");
   }
   function deleteChantier(id) { persistChantiers(chantiers.filter((c) => c.id !== id)); setView("chantierList"); }
+
+  function toggleJobClosed(key) { setClosedJobs((o) => ({ ...o, [key]: !o[key] })); }
+
+  function handleChantierPhotos(fieldKey, files) {
+    const list = Array.from(files || []);
+    if (list.length === 0) return;
+    Promise.all(list.map((f) => resizeImageToDataUrl(f, 1280, 0.72))).then((dataUrls) => {
+      setChantierForm((f) => ({ ...f, [fieldKey]: [...(f[fieldKey] || []), ...dataUrls] }));
+    }).catch(() => {});
+  }
+  function removeChantierPhoto(fieldKey, index) {
+    setChantierForm((f) => ({ ...f, [fieldKey]: (f[fieldKey] || []).filter((_, i) => i !== index) }));
+  }
 
   function openChantierFromProduct(p) {
     const total = bagCount > 1 ? computeBagTotal(p, bagCount) : null;
@@ -2208,7 +2297,11 @@ Règles :
     const filteredChantiers = qc
       ? chantiers.filter((c) => (c.nomJob || "").toLowerCase().includes(qc) || (c.produit || "").toLowerCase().includes(qc))
       : chantiers;
-    const sortedChantiers = [...filteredChantiers].sort((a, b) => `${b.date || ""}T${b.heure || ""}`.localeCompare(`${a.date || ""}T${a.heure || ""}`));
+    const jobGroups = groupByJob(filteredChantiers).sort((a, b) => {
+      const aKey = a.items[0] ? `${a.items[0].date || ""}T${a.items[0].heure || ""}` : "";
+      const bKey = b.items[0] ? `${b.items[0].date || ""}T${b.items[0].heure || ""}` : "";
+      return bKey.localeCompare(aKey);
+    });
     return (
       <div style={containerStyle}>
         <div style={{ position: "sticky", top: 0, zIndex: 2, background: hexToRgba(C.bg, 0.94), backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", paddingTop: "max(16px, env(safe-area-inset-top))", borderBottom: `1px solid ${C.border}`, marginBottom: 12 }}>
@@ -2255,30 +2348,56 @@ Règles :
           </div>
         )}
 
-        {chantiers.length > 0 && sortedChantiers.length === 0 && (
+        {chantiers.length > 0 && jobGroups.length === 0 && (
           <div style={{ textAlign: "center", padding: "40px 10px", color: C.textSecondary }}>
             <p style={{ fontSize: 14, margin: 0 }}>Aucun résultat pour « {chantierSearchQuery} ».</p>
           </div>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {sortedChantiers.map((c) => (
-            <button key={c.id} onClick={() => openChantierDetail(c.id)} style={{ background: C.surface, border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.accent}`, borderRadius: 0, padding: "12px 14px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 17, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.nomJob || "Sans nom"}</div>
-                <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>
-                  {formatDate(c.date)}{c.heure && ` à ${c.heure}`}
+        {jobGroups.map((group) => {
+          const closed = !!closedJobs[group.name];
+          return (
+            <div key={group.name} style={{ marginTop: 16 }}>
+              <button onClick={() => toggleJobClosed(group.name)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", background: C.surfaceAlt, border: `1px solid ${C.border}`, padding: "8px 12px", cursor: "pointer", color: C.text }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <IconFolder size={15} color={C.textSecondary} />
+                  <span style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: 0.3 }}>{group.name}</span>
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 11, color: C.textSecondary }}>{group.items.length} fiche{group.items.length > 1 ? "s" : ""}</span>
+                  <IconChevronRight size={16} color={C.textMuted} style={{ transform: closed ? "rotate(0deg)" : "rotate(90deg)", transition: "transform 0.15s ease" }} />
+                </span>
+              </button>
+              {!closed && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+                  {group.items.map((c) => {
+                    const rowColor = c.statut === "bien" ? C.success : c.statut === "mal" ? C.accent : C.accent;
+                    const rowBg = c.statut === "bien" ? hexToRgba(C.success, 0.1) : c.statut === "mal" ? hexToRgba(C.accent, 0.1) : C.surface;
+                    return (
+                      <button key={c.id} onClick={() => openChantierDetail(c.id)} style={{ background: rowBg, border: `1px solid ${C.border}`, borderLeft: `4px solid ${rowColor}`, borderRadius: 0, padding: "12px 14px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            {c.statut === "bien" && <IconCheck size={15} color={C.success} />}
+                            {c.statut === "mal" && <IconX size={15} color={C.accent} />}
+                            <div style={{ fontSize: 12, color: C.textSecondary }}>
+                              {formatDate(c.date)}{c.heure && ` à ${c.heure}`}
+                            </div>
+                          </div>
+                          {(c.produit || c.nombrePoches) && (
+                            <div style={{ fontSize: 12, color: C.textMuted, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {c.produit}{c.produit && c.nombrePoches && " · "}{c.nombrePoches && `${c.nombrePoches} poche${Number(c.nombrePoches) > 1 ? "s" : ""}`}
+                            </div>
+                          )}
+                        </div>
+                        <IconChevronRight size={20} color={C.textMuted} />
+                      </button>
+                    );
+                  })}
                 </div>
-                {(c.produit || c.nombrePoches) && (
-                  <div style={{ fontSize: 12, color: C.textMuted, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {c.produit}{c.produit && c.nombrePoches && " · "}{c.nombrePoches && `${c.nombrePoches} poche${Number(c.nombrePoches) > 1 ? "s" : ""}`}
-                  </div>
-                )}
-              </div>
-              <IconChevronRight size={20} color={C.textMuted} />
-            </button>
-          ))}
-        </div>
+              )}
+            </div>
+          );
+        })}
 
         {chantierSaveError && (
           <p style={{ fontSize: 12, color: C.accent, marginTop: 16 }}>La sauvegarde a échoué.</p>
@@ -2304,7 +2423,15 @@ Règles :
           <p style={{ margin: "6px 0 0", fontSize: 13, color: C.textSecondary }}>
             {formatDate(selectedChantier.date)}{selectedChantier.heure && ` à ${selectedChantier.heure}`}
           </p>
+          {selectedChantier.statut && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, padding: "4px 10px", background: selectedChantier.statut === "bien" ? hexToRgba(C.success, 0.18) : hexToRgba(C.accent, 0.18), color: selectedChantier.statut === "bien" ? C.success : C.accent, fontSize: 12, fontFamily: "'IBM Plex Sans', sans-serif" }}>
+              {selectedChantier.statut === "bien" ? <IconCheck size={14} /> : <IconX size={14} />}
+              {selectedChantier.statut === "bien" ? "Ça s'est bien passé" : "Ça s'est mal passé"}
+            </div>
+          )}
           <div style={{ height: 14 }} />
+
+          <PhotoGallery label="Photos du produit / matériel" photos={selectedChantier.photosProduit} />
 
           <div style={{ marginBottom: 6 }}>
             <SpecRow label="Produit" value={selectedChantier.produit} mono />
@@ -2325,6 +2452,8 @@ Règles :
               <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 14px" }}>{selectedChantier.manquements}</p>
             </div>
           )}
+
+          <PhotoGallery label="Photos du résultat" photos={selectedChantier.photosResultat} />
         </div>
       </div>
     );
@@ -2350,8 +2479,33 @@ Règles :
             <div style={{ flex: 1 }}><Field label="Eau utilisée" value={chantierForm.eauUtilisee} onChange={(v) => updateChantierField("eauUtilisee", v)} placeholder="ex. 20 L" /></div>
           </div>
           <Field label="Température" value={chantierForm.temperature} onChange={(v) => updateChantierField("temperature", v)} placeholder="ex. 18°C, ensoleillé" />
+
+          <PhotoGrid label="Photos du produit / matériel" photos={chantierForm.photosProduit} onAdd={(files) => handleChantierPhotos("photosProduit", files)} onRemove={(i) => removeChantierPhoto("photosProduit", i)} />
+
+          <div style={{ marginBottom: 14 }}>
+            <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, color: C.textSecondary, display: "block", marginBottom: 6 }}>Comment ça s'est passé ?</span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="button" onClick={() => updateChantierField("statut", chantierForm.statut === "bien" ? "" : "bien")} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 0", border: `1.5px solid ${chantierForm.statut === "bien" ? C.success : C.borderStrong}`, background: chantierForm.statut === "bien" ? hexToRgba(C.success, 0.18) : "transparent", color: chantierForm.statut === "bien" ? C.success : C.textSecondary, cursor: "pointer", fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 13 }}>
+                <IconCheck size={16} /> Bien passé
+              </button>
+              <button type="button" onClick={() => updateChantierField("statut", chantierForm.statut === "mal" ? "" : "mal")} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 0", border: `1.5px solid ${chantierForm.statut === "mal" ? C.accent : C.borderStrong}`, background: chantierForm.statut === "mal" ? hexToRgba(C.accent, 0.18) : "transparent", color: chantierForm.statut === "mal" ? C.accent : C.textSecondary, cursor: "pointer", fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 13 }}>
+                <IconX size={16} /> Mal passé
+              </button>
+            </div>
+          </div>
+
           <TextAreaField label="Notes" value={chantierForm.notes} onChange={(v) => updateChantierField("notes", v)} placeholder="Ça s'est bien passé, mais..." />
-          <TextAreaField label="Manquements / améliorations" value={chantierForm.manquements} onChange={(v) => updateChantierField("manquements", v)} placeholder="Problèmes rencontrés, points à améliorer..." />
+          <TextAreaField
+            label="Manquements / améliorations"
+            value={chantierForm.manquements}
+            onChange={(v) => updateChantierField("manquements", v)}
+            placeholder={chantierForm.statut === "mal" ? "Qu'est-ce qui s'est mal passé ? (température, dosage, délai, matériel...) Donne le plus de détails possible." : "Problèmes rencontrés, points à améliorer..."}
+            rows={chantierForm.statut === "mal" ? 6 : 3}
+            accent={chantierForm.statut === "mal"}
+          />
+
+          <PhotoGrid label="Photos du résultat" photos={chantierForm.photosResultat} onAdd={(files) => handleChantierPhotos("photosResultat", files)} onRemove={(i) => removeChantierPhoto("photosResultat", i)} />
+
           <button onClick={saveChantierForm} disabled={!chantierForm.nomJob.trim()} style={{ width: "100%", marginTop: 8, background: chantierForm.nomJob.trim() ? C.accent : C.disabledBg, color: C.onAccent, border: "none", padding: "13px 0", fontFamily: "'Oswald', sans-serif", fontSize: 15, letterSpacing: 0.5, cursor: chantierForm.nomJob.trim() ? "pointer" : "not-allowed" }}>
             {editingChantierId ? "Enregistrer les modifications" : "Ajouter au registre"}
           </button>
