@@ -167,6 +167,10 @@ const PRODUCT_CATALOG = [
   { nom: "SikaEmaco® S 466", fabricant: "Sika Canada", eauMin: "1.5", eauMax: "2.3", tempsBrassage: "3-5", resistance: "17.2 MPa (1j) / 41.4 MPa (7j) / 55.2 MPa (28j)", formatSac: "25 kg", rendement: "12.2 L par sac", tempsPrise: "Initiale : 4h · Finale : 6h", tempsCure: "Composé de cure ASTM C309/C1315; cure humide recommandée si recouvrement prévu", applications: "Réparations structurales grand volume, colonnes préfabriquées, cavités, reprofilage de têtes de pieux — 25 mm à pleine profondeur", notes: "Micro-béton à retrait compensé, inhibiteur de corrosion intégré. Vie en pot ~90 min à 23°C. Homologué MTMD Québec et MTO. Ne pas mélanger de sacs partiels.", lienFiche: "https://can.sika.com/dam/dms/ca01/9/sikaemaco-s-466.pdf", tempMin: "4", tempMax: "32" },
   { nom: "CPD® Non-Shrink Grout Pre-Mix UHP", fabricant: "CPD Construction Products", eauMin: "", eauMax: "2.5", tempsBrassage: "4-5", resistance: "Consistance fluide, cubes confinés @ 21°C — 35 MPa (1j) / 60 MPa (2j) / 75 MPa (3j) / 90 MPa (7j) / 115 MPa (28j)", formatSac: "22.7 kg (50.04 lb)", rendement: "0.011 m³ (0.30 pi³) par sac, à la teneur en eau maximale", tempsPrise: "Réglage initial : 5 h · Prise : 6 h", tempsCure: "Min. 72 h; CIPADECK Cure & Seal ou toile de jute humide; garder le béton et l'acier environnant au-dessus de 4.5°C pendant au moins 72 h", applications: "Plaques de base de colonnes en acier structural, bases de machinerie, murs de maçonnerie armée, sièges d'appui, boulons d'ancrage, sièges d'appui de pont, éoliennes", notes: "Épaisseur min. 25 mm, max. 150 mm (au-delà, contacter un représentant CPD). Garder agité en tout temps dans le malaxeur (pales embouts de caoutchouc, min. 4-5 min). Pompable ou coulé. Expansion (ASTM C827) : 0,3%. Limites de service : 4.5°C à 32°C. Conforme ASTM C1107 et U.S. Corps of Engineers CRD-C621. Ne jamais ajouter de matériau étranger sans consulter CPD. Durée de vie 1 an si stocké au sec. Résistance extraite par rendu visuel du PDF (scan sans couche de texte, non détectée par extraction automatique lors d'une première lecture).", lienFiche: "https://www.cpd.ca/wp-content/uploads/2025/09/NON-SHRINK-GROUT-UHP-PDS-SEP2025-FR.pdf", tempMin: "10", tempMax: "25" },
   { nom: "Planitop® Shotcrete", fabricant: "Mapei", eauMin: "2.75", eauMax: "3.25", tempsBrassage: "3", resistance: "20.7 MPa (1 jour) / 41.4 MPa (7 jours) / 51.7 MPa (28 jours)", formatSac: "24.9 kg (55 lb)", rendement: "≈0.0136 m³ par sac", tempsPrise: "Prise initiale à 23°C : 2 à 4 h", tempsCure: "Toile de jute humide ou pellicule de polyéthylène pendant les 3 premiers jours, ou agent de cure conforme ASTM C309", applications: "Béton projeté (procédé sec ou humide) : stationnements étagés, structures de ponts, murs de soutènement, mines et tunnels, applications marines, stabilisation de pentes, construction de piscines — surfaces verticales, en sous-face et horizontales", notes: "Monocomposant, rebond faible, bonifié à la fumée de silice. Épaisseur de 10 mm à 4 cm par couche (jusqu'à 15 cm en couches multiples). Conditionner le produit entre 18-29°C au moins 24 h avant usage. Plage de température d'application (ambiante/surface) : 7 à 35°C — la fiche ne précise pas de température distincte du produit après malaxage.", lienFiche: "./fiches/mapei-planitop-shotcrete.pdf", tempMin: "7", tempMax: "35" },
+  { nom: "Planitop® 18 ES", fabricant: "Mapei", eauMin: "2.60", eauMax: "2.73", tempsBrassage: "2-3", resistance: "20.7 MPa (3h) / 34.5 MPa (1j) / 37.9 MPa (7j) / 48.3 MPa (28j) — ASTM C109, conforme ASTM C928 R3", formatSac: "22.7 kg (50 lb)", rendement: "0.0116 m³ par sac (pur) · 0.0144 m³ par sac étendu à 50% avec 11.3 kg de gravier 10 mm", tempsPrise: "Initiale : >45 min · Finale : <110 min (ASTM C191)", tempsCure: "Cure humide min. 4 h, ou agent de cure conforme ASTM C308; protéger du gel/dégel pendant 24 h", applications: "Mortier de réparation en béton horizontal, intérieur et extérieur, pour réparations structurales de 6 mm à 2,5 cm en épaisseur nette, extensible jusqu'à 15 cm avec gravier. Conçu pour une remise en service rapide (circulation véhiculaire dès 6 h à 23°C) avec un temps de travail prolongé, utile par temps chaud. [Traduction du TDS anglais — fiche FR officielle non accessible lors de la recherche, voir notes.]", notes: "Fiche US utilisée (pages mapei.com/ca bloquées par Cloudflare lors de la recherche — fiche FR non confirmée, mêmes valeurs probables). Temps de travail (pot life) : 30 min à 23°C. La fiche ne distingue pas de température du produit après malaxage — plage unique ambiante/application 7-35°C réutilisée par convention (comme Planitop 11/Shotcrete). Résistance en flexion 28j : 6.90 MPa. Résistance d'adhérence (slant shear) : 12.4 MPa (1j) / 17.2 MPa (7j). Gel/dégel (300 cycles) : 98%. Aucun écaillage (ASTM C672, 25 cycles). COV : 0 g/L. Contient un inhibiteur de corrosion.", lienFiche: "./fiches/mapei-planitop-18-es.pdf", tempMin: "7", tempMax: "35" },
+  { nom: "Planitop® 18", fabricant: "Mapei", eauMin: "2.37", eauMax: "2.84", tempsBrassage: "2-3", resistance: "17.2 MPa (1h) / 37.9 MPa (2h) / 53.8 MPa (1j) / 64.8 MPa (28j) — ASTM C109 (pas de données à 3j/7j), conforme ASTM C928 R3", formatSac: "22.7 kg (50 lb)", rendement: "0.012 m³ par sac (pur) · 0.018 m³ par sac étendu à 80% avec jusqu'à 18.1 kg de gravier 10 mm", tempsPrise: "Initiale : >12 min · Finale : ≤30 min (ASTM C191)", tempsCure: "Toile de jute humide min. 1 h après prise initiale; protéger du gel min. 12 h; ou agent de cure conforme ASTM C309", applications: "Mortier de réparation à durcissement très rapide pour réparations horizontales de béton, intérieures et extérieures — tabliers de pont, garages de stationnement, joints de dalles. Épaisseur nette de 12 mm à 5 cm, extensible jusqu'à 20 cm avec gravier. Circulation possible dès 1 heure. [Traduction du TDS anglais — fiche FR officielle non accessible lors de la recherche, voir notes.]", notes: "Fiche US utilisée (pages mapei.com/ca bloquées par Cloudflare lors de la recherche — fiche FR non confirmée, mêmes valeurs probables). Aucun temps de travail/pot life distinct publié sur cette fiche (contrairement à la version ES). La fiche ne distingue pas de température du produit après malaxage — plage unique ambiante/application 0-35°C réutilisée par convention. Recouvrable en moins de 4 h. Module d'élasticité 28j : 25.6 GPa. Perméabilité aux chlorures (28j) : très faible, <1000 coulombs. Gel/dégel (300 cycles) : >99%. COV : 0 g/L. Contient un inhibiteur de corrosion.", lienFiche: "./fiches/mapei-planitop-18.pdf", tempMin: "0", tempMax: "35" },
+  { nom: "SikaQuick®-1000", fabricant: "Sika Canada", eauMin: "2.6", eauMax: "2.87", tempsBrassage: "3", resistance: "30 MPa (1j) / 40 MPa (7j) / 50 MPa (28j)", formatSac: "25 kg (55 lb)", rendement: "≈13 L par sac (pur) · ≈17 L par sac étendu avec 11 kg de granulat 10 mm", tempsPrise: "Initiale : 45-65 min · Finale : 55-100 min (ASTM C266)", tempsCure: "Protéger de la pluie min. 4 h; ne pas faire de cure humide — agent de cure conforme ASTM C309 (Sika Florseal WB-18/-25) si nécessaire. Circulation piétonne : 4 h · véhiculaire : 6 h (à 23°C)", applications: "Mortier cimentaire de réparation du béton, à un composant, à résistance initiale élevée et à durcissement rapide. Utilisé sur le béton en-dessous, au-dessus ou au niveau du sol pour le recouvrement et la réparation des routes, les réparations structurales de stationnements, ponts, barrages et rampes, les travaux de réparation sur toute la profondeur, et la réparation des surfaces horizontales de béton ou de mortier. Convient particulièrement aux applications par temps chaud exigeant un temps d'emploi prolongé.", notes: "Équivalent Sika de Planitop 18/18 ES (Mapei) — mortier horizontal à durcissement rapide, conforme ASTM C928. Fiche technique canadienne (can.sika.com), édition anglaise octobre 2023 utilisée comme référence (l'édition française sur le même site est une version plus ancienne de 2020, valeurs identiques où comparables). Temps de travail global (malaxage+pose+finition) : max 30 min. « Température du produit » publiée par Sika (plage de conditionnement/application du matériau, pas une mesure d'exotherme après malaxage) : 18-29°C — reprise ici par convention, comme pour les autres produits Sika du registre. Température ambiante/substrat : 7-30°C. Résistance en flexion 28j : 8.0 MPa. Module d'élasticité 28j : 32.7 GPa. Résistance d'adhérence (cisaillement) 28j : 15.5 MPa. Retrait : 0,07%. Gel/dégel (300 cycles) : 98%. Écaillage (ASTM C672, 50 cycles) : 0.39 kg/m². Conforme exigences CSA/CFIA/USDA pour usine alimentaire.", lienFiche: "./fiches/sikaquick-1000.pdf", tempMin: "18", tempMax: "29" },
+  { nom: "SikaQuick® VOH", fabricant: "Sika Corporation (É.-U.)", eauMin: "2.8", eauMax: "3.1", tempsBrassage: "3", resistance: "10.3 MPa (3h) / 20.7 MPa (1j) / 31.0 MPa (7j) / 37.9 MPa (28j) — ASTM C109, conforme ASTM C928 type R2", formatSac: "20 kg (44 lb)", rendement: "0.01 m³ par sac", tempsPrise: "Prise : 10-25 min · Prise finale : <35 min (ASTM C266) — temps d'application ≈15 min, temps de finition 20-30 min", tempsCure: "Cure humide (toile de jute + polyéthylène, brouillard d'eau fine, ou Sika Antisol-250W) immédiatement après finition; protéger du soleil/vent/pluie/gel. Recouvrement acrylique base eau : 4 h · époxy/polyuréthane : 6 h", applications: "Réparations rapides de surfaces de béton et de mortier verticales et en sous-face, à tous les niveaux (au-dessus, au-dessous ou au niveau du sol). Matériau de réparation pour façades de bâtiments, stationnements étagés, installations industrielles, ponts, etc. Mortier à prise rapide pour défauts de construction neuve. [Traduction — aucune fiche technique française trouvée, produit non répertorié sur can.sika.com.]", notes: "Équivalent Sika de Planitop 18/18 ES (Mapei) pour réparations verticales/en sous-face — PRODUIT NON TROUVÉ sur le catalogue can.sika.com lors de la recherche (vendu aux É.-U. seulement à ce jour); disponibilité/commande au Canada à confirmer auprès d'un représentant Sika. Ne pas confondre avec « SikaQuick® Pro VOH », produit distinct plus récent (gamme de détail Sika Pro Select) dont la fiche ne revendique pas la conformité ASTM C928. Fibré, modifié aux polymères, contient un inhibiteur de corrosion. Épaisseur max : 76 mm (vertical) / 51 mm (sous-face) en une couche; min. 3 mm. « Température du produit » publiée par Sika (plage de conditionnement/application, pas une mesure après malaxage) : 18-24°C — reprise ici par convention. Température ambiante/substrat : min. 7°C (ou -6,7°C avec accélérateur SikaQuick WinterBoost). Résistance en flexion 28j : 6.9 MPa. Module d'élasticité 7j : 15.2 GPa. Retrait : <0,05%. Densité du mélange frais : 2.0 kg/L.", lienFiche: "./fiches/sikaquick-voh.pdf", tempMin: "18", tempMax: "24" },
 ];
 
 // Le registre béton se pré-remplit désormais avec la totalité de PRODUCT_CATALOG (même principe
@@ -602,6 +606,39 @@ function SpecRow({ label, value, mono }) {
   );
 }
 
+// ---------- Compteur de poches (bulle flottante) ----------
+// Demande explicite de l'utilisateur : une bulle persistante en bas à droite de l'écran pour
+// choisir combien de poches seront utilisées, minimum 1, et voir le total d'eau recalculé
+// (poche × nombre) sans devoir ouvrir la fiche complète du produit.
+const BAG_COUNT_KEY = "nombre-poches";
+function formatBagNum(n) {
+  return Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100);
+}
+function computeBagTotal(p, bagCount) {
+  const min = parseFloat(p.eauMin);
+  const max = parseFloat(p.eauMax);
+  const hasMin = Number.isFinite(min);
+  const hasMax = Number.isFinite(max);
+  if (!hasMin && !hasMax) return null;
+  if (hasMin && hasMax && min !== max) {
+    return { total: `${formatBagNum(min * bagCount)}–${formatBagNum(max * bagCount)} L`, detail: `${formatBagNum(min)}–${formatBagNum(max)} L × ${bagCount}` };
+  }
+  const perBag = hasMax ? max : min;
+  return { total: `${formatBagNum(perBag * bagCount)} L`, detail: `${formatBagNum(perBag)} L × ${bagCount}` };
+}
+function BagCounterBubble({ count, onChange }) {
+  return (
+    <div style={{ position: "fixed", bottom: "max(16px, env(safe-area-inset-bottom))", right: "max(16px, env(safe-area-inset-right))", zIndex: 50, display: "flex", alignItems: "center", gap: 6, background: C.accent, color: C.onAccent, borderRadius: 999, padding: "6px 8px", boxShadow: "0 2px 12px rgba(0,0,0,0.45)" }}>
+      <button onClick={() => onChange(-1)} aria-label="Diminuer le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 36 }}>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, fontWeight: 700, lineHeight: 1 }}>{count}</span>
+        <span style={{ fontSize: 8, letterSpacing: 0.3, opacity: 0.85 }}>{count > 1 ? "poches" : "poche"}</span>
+      </div>
+      <button onClick={() => onChange(1)} aria-label="Augmenter le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+    </div>
+  );
+}
+
 function App() {
   const [products, setProducts] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -642,6 +679,7 @@ function App() {
   const [nameSettingsInput, setNameSettingsInput] = useState("");
   const [sessionMessage, setSessionMessage] = useState("");
   const [shareFeedback, setShareFeedback] = useState("");
+  const [bagCount, setBagCount] = useState(1);
 
   const [pumps, setPumps] = useState([]);
   const [pumpForm, setPumpForm] = useState(emptyPump);
@@ -792,6 +830,24 @@ function App() {
     setSessionMessage(pickRandomMessage(trimmed));
     setShowNamePrompt(false);
     window.storage.set(USER_NAME_KEY, trimmed).catch(() => {});
+  }
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await window.storage.get(BAG_COUNT_KEY);
+        const n = parseInt(res.value, 10);
+        if (Number.isFinite(n) && n >= 1) setBagCount(n);
+      } catch (e) {}
+    })();
+  }, []);
+
+  function changeBagCount(delta) {
+    setBagCount((prev) => {
+      const next = Math.max(1, prev + delta);
+      window.storage.set(BAG_COUNT_KEY, String(next)).catch(() => {});
+      return next;
+    });
   }
 
   async function shareText(title, text) {
@@ -1660,6 +1716,7 @@ Règles :
               {group.items.map((p) => {
                 const key = p.fabricant ? p.fabricant.trim().toLowerCase() : "";
                 const rowColor = p.fabricant ? (brandAssets[key] && brandAssets[key].bg ? brandAssets[key] : brandColor(p.fabricant)) : NO_BRAND_COLOR;
+                const bagTotal = bagCount > 1 ? computeBagTotal(p, bagCount) : null;
                 return (
                   <button key={p.id} onClick={() => openDetail(p.id)} style={{ background: hexToRgba(C.surface, 0.72), backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: `1px solid ${C.border}`, borderLeft: `4px solid ${rowColor.bg}`, borderRadius: 0, padding: "12px 14px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -1684,6 +1741,12 @@ Règles :
                           </div>
                         )}
                       </div>
+                      {bagTotal && (
+                        <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 6, background: hexToRgba(C.accent, 0.16), border: `1px solid ${hexToRgba(C.accent, 0.4)}`, padding: "3px 8px" }}>
+                          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, fontWeight: 700, color: C.accent }}>{bagTotal.total}</span>
+                          <span style={{ fontSize: 10, color: C.textSecondary }}>total ({bagCount} poches : {bagTotal.detail})</span>
+                        </div>
+                      )}
                     </div>
                     <IconChevronRight size={20} color={C.textMuted} />
                   </button>
@@ -1702,6 +1765,7 @@ Règles :
         )}
           </div>
         </div>
+        <BagCounterBubble count={bagCount} onChange={changeBagCount} />
       </>
     );
   }
@@ -1742,6 +1806,12 @@ Règles :
               <div style={{ fontSize: 11, color: C.textSecondary }}>Eau par sac</div>
               <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 17, fontWeight: 600, color: C.info }}>{selected.eauMin || "?"}–{selected.eauMax || "?"} L</div>
             </div>
+            {bagCount > 1 && computeBagTotal(selected, bagCount) && (
+              <div style={{ flex: "1 1 30%", background: hexToRgba(C.accent, 0.16), border: `1px solid ${hexToRgba(C.accent, 0.4)}`, padding: "10px 12px" }}>
+                <div style={{ fontSize: 11, color: C.textSecondary }}>Total ({bagCount} poches)</div>
+                <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 17, fontWeight: 600, color: C.accent }}>{computeBagTotal(selected, bagCount).total}</div>
+              </div>
+            )}
             <div style={{ flex: "1 1 30%", background: C.surfaceAlt, padding: "10px 12px" }}>
               <div style={{ fontSize: 11, color: C.textSecondary }}>Brassage</div>
               <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 17, fontWeight: 600, color: C.text }}>{selected.tempsBrassage || "?"} min</div>
@@ -1782,6 +1852,7 @@ Règles :
             </button>
           )}
         </div>
+        <BagCounterBubble count={bagCount} onChange={changeBagCount} />
       </div>
     );
   }
