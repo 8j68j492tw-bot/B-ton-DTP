@@ -11,6 +11,7 @@ const API_KEY_STORAGE = "fichesBetonApiKey";
 const CLAUDE_MODEL = "claude-sonnet-5";
 const POMPES_KEY = "pompes-beton";
 const USER_NAME_KEY = "nom-utilisateur";
+const APP_URL = "https://beton-dtp.vercel.app/";
 
 // ---------- Section Pompes : registre séparé, jamais mélangé avec le béton ----------
 const emptyPump = {
@@ -999,6 +1000,13 @@ function App() {
     setTimeout(() => setShareFeedback(""), 2500);
   }
 
+  function shareApp() {
+    shareText(
+      "Fiches Béton — DTP Construction",
+      `Fiches Béton — DTP Construction\n\nOuvre l'application directement dans ton navigateur, aucun compte ni installation requis :\n${APP_URL}`
+    );
+  }
+
   useEffect(() => {
     (async () => {
       try {
@@ -1585,6 +1593,17 @@ Règles :
           <button onClick={() => setView("list")} style={backBtnStyle}><IconArrowLeft size={18} /> Registre</button>
           <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, margin: 0 }}>Paramètres</h2>
         </div>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "16px", marginBottom: 14 }}>
+          <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 14, fontWeight: 600, margin: "0 0 8px" }}>Partager l'application</p>
+          <p style={{ fontSize: 13, lineHeight: 1.6, color: C.textSecondary, margin: "0 0 14px" }}>
+            Envoie ce lien à quelqu'un pour qu'il ouvre Fiches Béton directement dans son navigateur — aucun compte, aucune installation requise.
+          </p>
+          <button onClick={shareApp} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", background: C.accent, color: C.onAccent, border: "none", padding: "10px 12px", fontSize: 13, fontFamily: "'IBM Plex Sans', sans-serif", cursor: "pointer" }}>
+            <IconShare size={15} /> Partager le lien de l'application
+          </button>
+          {shareFeedback && <p style={{ fontSize: 12, color: C.info, margin: "10px 0 0" }}>{shareFeedback}</p>}
+        </div>
+
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "16px" }}>
 
           <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 14, fontWeight: 600, margin: "0 0 8px" }}>Sauvegarde et transfert</p>
