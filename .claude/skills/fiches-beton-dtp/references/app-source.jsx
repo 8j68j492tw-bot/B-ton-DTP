@@ -458,12 +458,12 @@ function buildRegistryShareText(products) {
     [...g.items]
       .sort((a, b) => (a.nom || "").localeCompare(b.nom || ""))
       .forEach((p) => {
-        const link = p.lienFiche ? ` — ${absoluteFicheUrl(p.lienFiche)}` : "";
-        lines.push(`• ${p.nom}${link}`);
+        lines.push(`• ${p.nom}`);
       });
     lines.push("");
   });
-  lines.push("— Partagé depuis Fiches Béton (DTP Construction)");
+  lines.push("Fiches techniques complètes et à jour directement ici :");
+  lines.push(APP_URL);
   return lines.join("\n");
 }
 function buildPumpRegistryShareText(pumps) {
@@ -472,10 +472,11 @@ function buildPumpRegistryShareText(pumps) {
   const lines = ["Registre pompes — DTP Construction", `${pumps.length} pompe${pumps.length > 1 ? "s" : ""} au registre`, ""];
   sorted.forEach((p) => {
     const bits = [p.fabricant, p.type].filter(Boolean).join(" · ");
-    const link = p.lienFiche ? ` — ${absoluteFicheUrl(p.lienFiche)}` : "";
-    lines.push(`• ${p.nom}${bits ? ` (${bits})` : ""}${link}`);
+    lines.push(`• ${p.nom}${bits ? ` (${bits})` : ""}`);
   });
-  lines.push("\n— Partagé depuis Fiches Béton (DTP Construction)");
+  lines.push("");
+  lines.push("Fiches techniques complètes et à jour directement ici :");
+  lines.push(APP_URL);
   return lines.join("\n");
 }
 
