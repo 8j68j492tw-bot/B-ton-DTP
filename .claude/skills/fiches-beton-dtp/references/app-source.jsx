@@ -1145,6 +1145,8 @@ function App() {
     const payload = {
       exportedAt: new Date().toISOString(),
       produits: productsRef.current,
+      pompes: pumpsRef.current,
+      marques: brandAssetsRef.current,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -1183,12 +1185,54 @@ function App() {
       if (toAdd.length > 0) {
         await persist([...productsRef.current, ...toAdd]);
       }
-      if (toAdd.length > 0 && skipped > 0) {
-        setImportNote(`${toAdd.length} fiche${toAdd.length > 1 ? "s" : ""} importée${toAdd.length > 1 ? "s" : ""}. ${skipped} déjà présente${skipped > 1 ? "s" : ""} dans le registre, ignorée${skipped > 1 ? "s" : ""}.`);
-      } else if (toAdd.length > 0) {
-        setImportNote(`${toAdd.length} fiche${toAdd.length > 1 ? "s" : ""} importée${toAdd.length > 1 ? "s" : ""} avec succès.`);
-      } else if (skipped > 0) {
-        setImportNote(`Aucune nouvelle fiche — ${skipped} produit${skipped > 1 ? "s" : ""} déjà présent${skipped > 1 ? "s" : ""} dans le registre.`);
+
+      // Pompes : même logique anti-doublon par nom, mais sur le registre pompes (séparé).
+      const incomingPumps = Array.isArray(parsed.pompes) ? parsed.pompes : [];
+      const existingPumpNames = new Set(pumpsRef.current.map((p) => (p.nom || "").trim().toLowerCase()).filter(Boolean));
+      const existingPumpIds = new Set(pumpsRef.current.map((p) => p.id));
+      const seenPumpsInBatch = new Set();
+      const pumpsToAdd = [];
+      let pumpsSkipped = 0;
+      for (const p of incomingPumps) {
+        if (!p || p.nom === undefined) continue;
+        const norm = (p.nom || "").trim().toLowerCase();
+        if (!norm || existingPumpNames.has(norm) || seenPumpsInBatch.has(norm)) {
+          pumpsSkipped++;
+          continue;
+        }
+        seenPumpsInBatch.add(norm);
+        pumpsToAdd.push(p.id && !existingPumpIds.has(p.id) ? p : { ...p, id: Date.now().toString() + Math.random().toString(36).slice(2, 6) });
+      }
+      if (pumpsToAdd.length > 0) {
+        await persistPumps([...pumpsRef.current, ...pumpsToAdd]);
+      }
+
+      // Marques (couleurs/photos de fabricant) : on ne remplit que les marques pas encore
+      // personnalisées localement — ne jamais écraser une personnalisation déjà faite.
+      const incomingMarques = parsed.marques && typeof parsed.marques === "object" && !Array.isArray(parsed.marques) ? parsed.marques : {};
+      const nextMarques = { ...brandAssetsRef.current };
+      let marquesAdded = 0;
+      Object.keys(incomingMarques).forEach((key) => {
+        if (!nextMarques[key]) {
+          nextMarques[key] = incomingMarques[key];
+          marquesAdded++;
+        }
+      });
+      if (marquesAdded > 0) {
+        brandAssetsRef.current = nextMarques;
+        setBrandAssets(nextMarques);
+        window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(nextMarques)).catch(() => {});
+      }
+
+      const parts = [];
+      if (toAdd.length > 0) parts.push(`${toAdd.length} fiche${toAdd.length > 1 ? "s" : ""} béton`);
+      if (pumpsToAdd.length > 0) parts.push(`${pumpsToAdd.length} pompe${pumpsToAdd.length > 1 ? "s" : ""}`);
+      if (marquesAdded > 0) parts.push(`${marquesAdded} personnalisation${marquesAdded > 1 ? "s" : ""} de marque (couleur/photo)`);
+      const totalSkipped = skipped + pumpsSkipped;
+      if (parts.length > 0) {
+        setImportNote(`${parts.join(" · ")} importée${parts.length > 1 ? "s" : ""}.${totalSkipped > 0 ? ` ${totalSkipped} élément${totalSkipped > 1 ? "s" : ""} déjà présent${totalSkipped > 1 ? "s" : ""}, ignoré${totalSkipped > 1 ? "s" : ""}.` : ""}`);
+      } else if (totalSkipped > 0) {
+        setImportNote(`Rien à importer — tout était déjà présent dans ton registre (${totalSkipped} élément${totalSkipped > 1 ? "s" : ""} ignoré${totalSkipped > 1 ? "s" : ""}).`);
       } else {
         setImportError("Le fichier ne contenait aucune fiche reconnaissable.");
       }
@@ -1608,21 +1652,21 @@ Règles :
 
           <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 14, fontWeight: 600, margin: "0 0 8px" }}>Sauvegarde et transfert</p>
           <p style={{ fontSize: 13, lineHeight: 1.6, color: C.textSecondary, margin: "0 0 14px" }}>
-            Tes fiches sont stockées seulement sur cet appareil, et Safari garde une copie séparée de celle de l'app installée sur l'écran d'accueil — si tu as entré des fiches dans Safari et qu'elles n'apparaissent pas ici, exporte-les depuis Safari puis importe le fichier ici.
+            Tes fiches béton, tes pompes et tes personnalisations de marque (couleur/photo) sont stockées seulement sur cet appareil/navigateur — Safari, l'app installée sur l'écran d'accueil, et chaque adresse web différente (ex. GitHub Pages vs Vercel) gardent chacun une copie séparée. Si tu changes d'appareil, de navigateur ou d'adresse et que tout n'apparaît pas, exporte depuis l'ancien endroit puis importe le fichier ici.
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button
               onClick={exportData}
-              disabled={products.length === 0}
-              style={{ flex: 1, minWidth: 140, background: "none", border: `1px solid ${C.borderStrong}`, color: products.length === 0 ? C.textMuted : C.text, padding: "10px 12px", fontSize: 13, cursor: products.length === 0 ? "not-allowed" : "pointer" }}
+              disabled={products.length === 0 && pumps.length === 0}
+              style={{ flex: 1, minWidth: 140, background: "none", border: `1px solid ${C.borderStrong}`, color: products.length === 0 && pumps.length === 0 ? C.textMuted : C.text, padding: "10px 12px", fontSize: 13, cursor: products.length === 0 && pumps.length === 0 ? "not-allowed" : "pointer" }}
             >
-              Exporter mes fiches
+              Exporter toutes mes données
             </button>
             <button
               onClick={() => importInputRef.current && importInputRef.current.click()}
               style={{ flex: 1, minWidth: 140, background: "none", border: `1px solid ${C.borderStrong}`, color: C.text, padding: "10px 12px", fontSize: 13, cursor: "pointer" }}
             >
-              Importer des fiches
+              Importer des données
             </button>
             <input
               ref={importInputRef}
