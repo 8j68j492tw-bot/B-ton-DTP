@@ -716,9 +716,9 @@ function SpecRow({ label, value, mono }) {
 // (poche × nombre) sans devoir ouvrir la fiche complète du produit.
 const BAG_COUNT_KEY = "nombre-poches";
 const PUMP_TYPE_KEY = "type-pompe-selectionne";
-// La Bunker B-30 a une capacité de malaxage fixe équivalente à 56 poches — demande explicite de
-// l'utilisateur : quand elle est sélectionnée, l'eau totale ignore le compteur de poches et vaut
-// toujours (eau min ou max par poche) × 56, peu importe le chiffre affiché dans la bulle.
+// Bunker B-30 : l'eau requise vaut (eau min ou max par poche) × 56, peu importe le compteur de poches.
+// 56 = poches PAR HEURE, pas par gâchée : ce multiplicateur sert au calcul seulement et ne doit
+// JAMAIS être affiché ("× 56", "56 poches"...) — demande explicite de l'utilisateur.
 const B30_FIXED_BAG_MULTIPLIER = 56;
 function formatBagNum(n) {
   return Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100);
@@ -731,10 +731,10 @@ function computeBagTotal(p, bagCount, pumpType) {
   if (!hasMin && !hasMax) return null;
   const multiplier = pumpType === "B30" ? B30_FIXED_BAG_MULTIPLIER : bagCount;
   if (hasMin && hasMax && min !== max) {
-    return { total: `${formatBagNum(min * multiplier)}–${formatBagNum(max * multiplier)} L`, detail: `${formatBagNum(min)}–${formatBagNum(max)} L × ${multiplier}` };
+    return { total: `${formatBagNum(min * multiplier)}–${formatBagNum(max * multiplier)} L`, detail: pumpType === "B30" ? "" : `${formatBagNum(min)}–${formatBagNum(max)} L × ${multiplier}` };
   }
   const perBag = hasMax ? max : min;
-  return { total: `${formatBagNum(perBag * multiplier)} L`, detail: `${formatBagNum(perBag)} L × ${multiplier}` };
+  return { total: `${formatBagNum(perBag * multiplier)} L`, detail: pumpType === "B30" ? "" : `${formatBagNum(perBag)} L × ${multiplier}` };
 }
 function BagCounterBubble({ count, onChange, pumpType, onPumpTypeChange }) {
   return (
@@ -750,23 +750,16 @@ function BagCounterBubble({ count, onChange, pumpType, onPumpTypeChange }) {
         <option value="MP200">Bunker MP-200</option>
         <option value="B30">Bunker B-30</option>
       </select>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: C.accent, color: C.onAccent, borderRadius: 999, padding: "6px 8px", boxShadow: "0 2px 12px rgba(0,0,0,0.45)" }}>
-        {pumpType === "B30" ? (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 70, padding: "2px 10px" }}>
-            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 15, fontWeight: 700, lineHeight: 1 }}>× {B30_FIXED_BAG_MULTIPLIER}</span>
-            <span style={{ fontSize: 8, letterSpacing: 0.3, opacity: 0.85 }}>B-30 (fixe)</span>
+      {pumpType !== "B30" && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: C.accent, color: C.onAccent, borderRadius: 999, padding: "6px 8px", boxShadow: "0 2px 12px rgba(0,0,0,0.45)" }}>
+          <button onClick={() => onChange(-1)} aria-label="Diminuer le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 36 }}>
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, fontWeight: 700, lineHeight: 1 }}>{count}</span>
+            <span style={{ fontSize: 8, letterSpacing: 0.3, opacity: 0.85 }}>{count > 1 ? "poches" : "poche"}</span>
           </div>
-        ) : (
-          <>
-            <button onClick={() => onChange(-1)} aria-label="Diminuer le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 36 }}>
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, fontWeight: 700, lineHeight: 1 }}>{count}</span>
-              <span style={{ fontSize: 8, letterSpacing: 0.3, opacity: 0.85 }}>{count > 1 ? "poches" : "poche"}</span>
-            </div>
-            <button onClick={() => onChange(1)} aria-label="Augmenter le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
-          </>
-        )}
-      </div>
+          <button onClick={() => onChange(1)} aria-label="Augmenter le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1551,7 +1544,7 @@ function App() {
     const total = multiplierActive ? computeBagTotal(p, bagCount, pumpType) : null;
     openNewChantierForm({
       produit: p.nom,
-      nombrePoches: pumpType === "B30" ? String(B30_FIXED_BAG_MULTIPLIER) : (bagCount > 1 ? String(bagCount) : ""),
+      nombrePoches: pumpType === "B30" ? "" : (bagCount > 1 ? String(bagCount) : ""),
       eauUtilisee: total ? total.total : (p.eauMax || p.eauMin || ""),
     });
   }
@@ -2013,7 +2006,6 @@ Règles :
                 const key = p.fabricant ? p.fabricant.trim().toLowerCase() : "";
                 const rowColor = p.fabricant ? (brandAssets[key] && brandAssets[key].bg ? brandAssets[key] : brandColor(p.fabricant)) : NO_BRAND_COLOR;
                 const bagTotal = pumpType === "B30" || bagCount > 1 ? computeBagTotal(p, bagCount, pumpType) : null;
-                const bagMultiplier = pumpType === "B30" ? B30_FIXED_BAG_MULTIPLIER : bagCount;
                 return (
                   <button key={p.id} onClick={() => openDetail(p.id)} style={{ background: hexToRgba(C.surface, 0.72), backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: `1px solid ${C.border}`, borderLeft: `4px solid ${rowColor.bg}`, borderRadius: 0, padding: "12px 14px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -2041,7 +2033,7 @@ Règles :
                       {bagTotal && (
                         <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 6, background: hexToRgba(C.accent, 0.16), border: `1px solid ${hexToRgba(C.accent, 0.4)}`, padding: "3px 8px" }}>
                           <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, fontWeight: 700, color: C.accent }}>{bagTotal.total}</span>
-                          <span style={{ fontSize: 10, color: C.textSecondary }}>total ({bagMultiplier} poches{pumpType === "B30" ? " · B-30" : ""} : {bagTotal.detail})</span>
+                          <span style={{ fontSize: 10, color: C.textSecondary }}>{pumpType === "B30" ? "eau B-30" : `total (${bagCount} poches : ${bagTotal.detail})`}</span>
                         </div>
                       )}
                     </div>
@@ -2107,7 +2099,7 @@ Règles :
             {(pumpType === "B30" || bagCount > 1) && computeBagTotal(selected, bagCount, pumpType) && (
               <div style={{ flex: "1 1 30%", background: hexToRgba(C.accent, 0.16), border: `1px solid ${hexToRgba(C.accent, 0.4)}`, padding: "10px 12px" }}>
                 <div style={{ fontSize: 11, color: C.textSecondary }}>
-                  {pumpType === "B30" ? `Total (B-30 · ${B30_FIXED_BAG_MULTIPLIER} poches)` : `Total (${bagCount} poches)`}
+                  {pumpType === "B30" ? "Eau B-30" : `Total (${bagCount} poches)`}
                 </div>
                 <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 17, fontWeight: 600, color: C.accent }}>{computeBagTotal(selected, bagCount, pumpType).total}</div>
               </div>
