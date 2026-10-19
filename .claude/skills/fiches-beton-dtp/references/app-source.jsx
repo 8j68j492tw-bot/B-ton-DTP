@@ -306,9 +306,11 @@ function extractDominantColor(imgEl) {
 // ---------- Section Chantier : journal de pompage/pose, registre séparé du béton et des pompes ----------
 const CHANTIERS_KEY = "chantiers-beton";
 const emptyChantier = {
-  nomJob: "", date: "", heure: "", produit: "", nombrePoches: "", eauUtilisee: "",
+  nomJob: "", date: "", heure: "", produit: "", nombrePoches: "", eauUtilisee: "", pompe: "",
   temperature: "", notes: "", manquements: "", statut: "", photosProduit: [], photosResultat: [],
 };
+// Valeurs de `pompe` dans une fiche de chantier = mêmes codes que le sélecteur de la bulle flottante.
+const PUMP_TYPE_LABELS = { B100: "Bunker B-100", MP200: "Bunker MP-200", B30: "Bunker B-30" };
 function currentTimeStr() {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -1515,7 +1517,7 @@ function App() {
   }
 
   function openNewChantierForm(prefill) {
-    setChantierForm({ ...emptyChantier, date: todayStr(), heure: currentTimeStr(), ...(prefill || {}) });
+    setChantierForm({ ...emptyChantier, date: todayStr(), heure: currentTimeStr(), pompe: pumpType, ...(prefill || {}) });
     setEditingChantierId(null);
     setView("chantierForm");
   }
@@ -2525,9 +2527,9 @@ Règles :
                               {formatDate(c.date)}{c.heure && ` à ${c.heure}`}
                             </div>
                           </div>
-                          {(c.produit || c.nombrePoches) && (
+                          {(c.produit || c.nombrePoches || c.pompe) && (
                             <div style={{ fontSize: 12, color: C.textMuted, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {c.produit}{c.produit && c.nombrePoches && " · "}{c.nombrePoches && `${c.nombrePoches} poche${Number(c.nombrePoches) > 1 ? "s" : ""}`}
+                              {[c.produit, c.nombrePoches && `${c.nombrePoches} poche${Number(c.nombrePoches) > 1 ? "s" : ""}`, c.pompe && (PUMP_TYPE_LABELS[c.pompe] || c.pompe)].filter(Boolean).join(" · ")}
                             </div>
                           )}
                         </div>
@@ -2577,6 +2579,7 @@ Règles :
 
           <div style={{ marginBottom: 6 }}>
             <SpecRow label="Produit" value={selectedChantier.produit} mono />
+            <SpecRow label="Pompe" value={selectedChantier.pompe ? (PUMP_TYPE_LABELS[selectedChantier.pompe] || selectedChantier.pompe) : ""} mono />
             <SpecRow label="Nombre de poches" value={selectedChantier.nombrePoches} mono />
             <SpecRow label="Eau utilisée" value={selectedChantier.eauUtilisee} mono />
             <SpecRow label="Température" value={selectedChantier.temperature} mono />
@@ -2616,6 +2619,20 @@ Règles :
             <div style={{ flex: 1 }}><Field label="Heure" type="time" value={chantierForm.heure} onChange={(v) => updateChantierField("heure", v)} /></div>
           </div>
           <Field label="Produit utilisé" value={chantierForm.produit} onChange={(v) => updateChantierField("produit", v)} placeholder="ex. Sikacrete®-08 SCC" />
+          <label style={{ display: "block", marginBottom: 14 }}>
+            <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, color: C.textSecondary, display: "block", marginBottom: 4 }}>Pompe utilisée</span>
+            <select
+              value={chantierForm.pompe || ""}
+              onChange={(e) => updateChantierField("pompe", e.target.value)}
+              aria-label="Pompe utilisée pour cette fiche"
+              style={{ width: "100%", background: "transparent", color: C.text, border: "none", borderBottom: `1.5px solid ${C.borderStrong}`, padding: "4px 0 8px", fontFamily: "'IBM Plex Mono', monospace", fontSize: 15, outline: "none", borderRadius: 0 }}
+            >
+              <option value="">Non précisée</option>
+              <option value="B100">{PUMP_TYPE_LABELS.B100}</option>
+              <option value="MP200">{PUMP_TYPE_LABELS.MP200}</option>
+              <option value="B30">{PUMP_TYPE_LABELS.B30}</option>
+            </select>
+          </label>
           <div style={{ display: "flex", gap: 10 }}>
             <div style={{ flex: 1 }}><Field label="Nombre de poches" type="number" value={chantierForm.nombrePoches} onChange={(v) => updateChantierField("nombrePoches", v)} placeholder="ex. 8" /></div>
             <div style={{ flex: 1 }}><Field label="Eau utilisée" value={chantierForm.eauUtilisee} onChange={(v) => updateChantierField("eauUtilisee", v)} placeholder="ex. 20 L" /></div>
