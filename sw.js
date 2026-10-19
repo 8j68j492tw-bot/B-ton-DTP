@@ -1,4 +1,4 @@
-const CACHE_NAME = "fiches-beton-v9";
+const CACHE_NAME = "fiches-beton-v10";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   "./vendor/pdfjs/pdf.min.js",
@@ -24,6 +24,7 @@ const APP_SHELL = [
   "./fiches/mapei-planitop-18.pdf",
   "./fiches/sikaquick-1000.pdf",
   "./fiches/sikaquick-voh.pdf",
+  "./fiches/king-ms-s10-scc.pdf",
 ];
 
 self.addEventListener("install", (event) => {
