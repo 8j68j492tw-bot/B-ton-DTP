@@ -713,30 +713,58 @@ function SpecRow({ label, value, mono }) {
 // choisir combien de poches seront utilisées, minimum 1, et voir le total d'eau recalculé
 // (poche × nombre) sans devoir ouvrir la fiche complète du produit.
 const BAG_COUNT_KEY = "nombre-poches";
+const PUMP_TYPE_KEY = "type-pompe-selectionne";
+// La Bunker B-30 a une capacité de malaxage fixe équivalente à 56 poches — demande explicite de
+// l'utilisateur : quand elle est sélectionnée, l'eau totale ignore le compteur de poches et vaut
+// toujours (eau min ou max par poche) × 56, peu importe le chiffre affiché dans la bulle.
+const B30_FIXED_BAG_MULTIPLIER = 56;
 function formatBagNum(n) {
   return Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100);
 }
-function computeBagTotal(p, bagCount) {
+function computeBagTotal(p, bagCount, pumpType) {
   const min = parseFloat(p.eauMin);
   const max = parseFloat(p.eauMax);
   const hasMin = Number.isFinite(min);
   const hasMax = Number.isFinite(max);
   if (!hasMin && !hasMax) return null;
+  const multiplier = pumpType === "B30" ? B30_FIXED_BAG_MULTIPLIER : bagCount;
   if (hasMin && hasMax && min !== max) {
-    return { total: `${formatBagNum(min * bagCount)}–${formatBagNum(max * bagCount)} L`, detail: `${formatBagNum(min)}–${formatBagNum(max)} L × ${bagCount}` };
+    return { total: `${formatBagNum(min * multiplier)}–${formatBagNum(max * multiplier)} L`, detail: `${formatBagNum(min)}–${formatBagNum(max)} L × ${multiplier}` };
   }
   const perBag = hasMax ? max : min;
-  return { total: `${formatBagNum(perBag * bagCount)} L`, detail: `${formatBagNum(perBag)} L × ${bagCount}` };
+  return { total: `${formatBagNum(perBag * multiplier)} L`, detail: `${formatBagNum(perBag)} L × ${multiplier}` };
 }
-function BagCounterBubble({ count, onChange }) {
+function BagCounterBubble({ count, onChange, pumpType, onPumpTypeChange }) {
   return (
-    <div style={{ position: "fixed", bottom: "max(16px, env(safe-area-inset-bottom))", right: "max(16px, env(safe-area-inset-right))", zIndex: 50, display: "flex", alignItems: "center", gap: 6, background: C.accent, color: C.onAccent, borderRadius: 999, padding: "6px 8px", boxShadow: "0 2px 12px rgba(0,0,0,0.45)" }}>
-      <button onClick={() => onChange(-1)} aria-label="Diminuer le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 36 }}>
-        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, fontWeight: 700, lineHeight: 1 }}>{count}</span>
-        <span style={{ fontSize: 8, letterSpacing: 0.3, opacity: 0.85 }}>{count > 1 ? "poches" : "poche"}</span>
+    <div style={{ position: "fixed", bottom: "max(16px, env(safe-area-inset-bottom))", right: "max(16px, env(safe-area-inset-right))", zIndex: 50, display: "flex", flexDirection: "column", alignItems: "stretch", gap: 6 }}>
+      <select
+        value={pumpType}
+        onChange={(e) => onPumpTypeChange(e.target.value)}
+        aria-label="Type de pompe utilisée"
+        style={{ background: C.surface, color: C.text, border: `1px solid ${C.borderStrong}`, borderRadius: 999, padding: "6px 10px", fontSize: 12, fontFamily: "'IBM Plex Sans', sans-serif", textAlign: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.4)" }}
+      >
+        <option value="">Pompe : aucune</option>
+        <option value="B100">Bunker B-100</option>
+        <option value="MP200">Bunker MP-200</option>
+        <option value="B30">Bunker B-30</option>
+      </select>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: C.accent, color: C.onAccent, borderRadius: 999, padding: "6px 8px", boxShadow: "0 2px 12px rgba(0,0,0,0.45)" }}>
+        {pumpType === "B30" ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 70, padding: "2px 10px" }}>
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 15, fontWeight: 700, lineHeight: 1 }}>× {B30_FIXED_BAG_MULTIPLIER}</span>
+            <span style={{ fontSize: 8, letterSpacing: 0.3, opacity: 0.85 }}>B-30 (fixe)</span>
+          </div>
+        ) : (
+          <>
+            <button onClick={() => onChange(-1)} aria-label="Diminuer le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 36 }}>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, fontWeight: 700, lineHeight: 1 }}>{count}</span>
+              <span style={{ fontSize: 8, letterSpacing: 0.3, opacity: 0.85 }}>{count > 1 ? "poches" : "poche"}</span>
+            </div>
+            <button onClick={() => onChange(1)} aria-label="Augmenter le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+          </>
+        )}
       </div>
-      <button onClick={() => onChange(1)} aria-label="Augmenter le nombre de poches" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.onAccent, width: 28, height: 28, borderRadius: "50%", fontSize: 18, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
     </div>
   );
 }
@@ -782,6 +810,7 @@ function App() {
   const [sessionMessage, setSessionMessage] = useState("");
   const [shareFeedback, setShareFeedback] = useState("");
   const [bagCount, setBagCount] = useState(1);
+  const [pumpType, setPumpType] = useState("");
 
   const [pumps, setPumps] = useState([]);
   const [pumpForm, setPumpForm] = useState(emptyPump);
@@ -985,6 +1014,20 @@ function App() {
       window.storage.set(BAG_COUNT_KEY, String(next)).catch(() => {});
       return next;
     });
+  }
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await window.storage.get(PUMP_TYPE_KEY);
+        if (res && ["", "B100", "MP200", "B30"].includes(res.value)) setPumpType(res.value);
+      } catch (e) {}
+    })();
+  }, []);
+
+  function changePumpType(value) {
+    setPumpType(value);
+    window.storage.set(PUMP_TYPE_KEY, value).catch(() => {});
   }
 
   async function shareText(title, text) {
@@ -1502,10 +1545,11 @@ function App() {
   }
 
   function openChantierFromProduct(p) {
-    const total = bagCount > 1 ? computeBagTotal(p, bagCount) : null;
+    const multiplierActive = pumpType === "B30" || bagCount > 1;
+    const total = multiplierActive ? computeBagTotal(p, bagCount, pumpType) : null;
     openNewChantierForm({
       produit: p.nom,
-      nombrePoches: bagCount > 1 ? String(bagCount) : "",
+      nombrePoches: pumpType === "B30" ? String(B30_FIXED_BAG_MULTIPLIER) : (bagCount > 1 ? String(bagCount) : ""),
       eauUtilisee: total ? total.total : (p.eauMax || p.eauMin || ""),
     });
   }
@@ -1966,7 +2010,8 @@ Règles :
               {group.items.map((p) => {
                 const key = p.fabricant ? p.fabricant.trim().toLowerCase() : "";
                 const rowColor = p.fabricant ? (brandAssets[key] && brandAssets[key].bg ? brandAssets[key] : brandColor(p.fabricant)) : NO_BRAND_COLOR;
-                const bagTotal = bagCount > 1 ? computeBagTotal(p, bagCount) : null;
+                const bagTotal = pumpType === "B30" || bagCount > 1 ? computeBagTotal(p, bagCount, pumpType) : null;
+                const bagMultiplier = pumpType === "B30" ? B30_FIXED_BAG_MULTIPLIER : bagCount;
                 return (
                   <button key={p.id} onClick={() => openDetail(p.id)} style={{ background: hexToRgba(C.surface, 0.72), backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: `1px solid ${C.border}`, borderLeft: `4px solid ${rowColor.bg}`, borderRadius: 0, padding: "12px 14px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -1994,7 +2039,7 @@ Règles :
                       {bagTotal && (
                         <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 6, background: hexToRgba(C.accent, 0.16), border: `1px solid ${hexToRgba(C.accent, 0.4)}`, padding: "3px 8px" }}>
                           <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, fontWeight: 700, color: C.accent }}>{bagTotal.total}</span>
-                          <span style={{ fontSize: 10, color: C.textSecondary }}>total ({bagCount} poches : {bagTotal.detail})</span>
+                          <span style={{ fontSize: 10, color: C.textSecondary }}>total ({bagMultiplier} poches{pumpType === "B30" ? " · B-30" : ""} : {bagTotal.detail})</span>
                         </div>
                       )}
                     </div>
@@ -2015,7 +2060,7 @@ Règles :
         )}
           </div>
         </div>
-        <BagCounterBubble count={bagCount} onChange={changeBagCount} />
+        <BagCounterBubble count={bagCount} onChange={changeBagCount} pumpType={pumpType} onPumpTypeChange={changePumpType} />
       </>
     );
   }
@@ -2057,10 +2102,12 @@ Règles :
               <div style={{ fontSize: 11, color: C.textSecondary }}>Eau par sac</div>
               <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 17, fontWeight: 600, color: C.info }}>{selected.eauMin || "?"}–{selected.eauMax || "?"} L</div>
             </div>
-            {bagCount > 1 && computeBagTotal(selected, bagCount) && (
+            {(pumpType === "B30" || bagCount > 1) && computeBagTotal(selected, bagCount, pumpType) && (
               <div style={{ flex: "1 1 30%", background: hexToRgba(C.accent, 0.16), border: `1px solid ${hexToRgba(C.accent, 0.4)}`, padding: "10px 12px" }}>
-                <div style={{ fontSize: 11, color: C.textSecondary }}>Total ({bagCount} poches)</div>
-                <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 17, fontWeight: 600, color: C.accent }}>{computeBagTotal(selected, bagCount).total}</div>
+                <div style={{ fontSize: 11, color: C.textSecondary }}>
+                  {pumpType === "B30" ? `Total (B-30 · ${B30_FIXED_BAG_MULTIPLIER} poches)` : `Total (${bagCount} poches)`}
+                </div>
+                <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 17, fontWeight: 600, color: C.accent }}>{computeBagTotal(selected, bagCount, pumpType).total}</div>
               </div>
             )}
             <div style={{ flex: "1 1 30%", background: C.surfaceAlt, padding: "10px 12px" }}>
@@ -2103,7 +2150,7 @@ Règles :
             </button>
           )}
         </div>
-        <BagCounterBubble count={bagCount} onChange={changeBagCount} />
+        <BagCounterBubble count={bagCount} onChange={changeBagCount} pumpType={pumpType} onPumpTypeChange={changePumpType} />
       </div>
     );
   }
