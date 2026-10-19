@@ -716,6 +716,11 @@ function SpecRow({ label, value, mono }) {
 // (poche × nombre) sans devoir ouvrir la fiche complète du produit.
 const BAG_COUNT_KEY = "nombre-poches";
 const PUMP_TYPE_KEY = "type-pompe-selectionne";
+// Espace vide ajouté en bas des vues qui affichent la bulle flottante (sélecteur de pompe + poches,
+// ~100 px de haut) : sans lui, quand la liste est courte (ex. un seul fabricant affiché), la bulle
+// recouvre la flèche de la bannière ou le dernier élément et on ne peut pas faire défiler la page
+// assez loin pour l'atteindre.
+const FLOATING_WIDGET_CLEARANCE = 170;
 // Bunker B-30 : l'eau requise vaut (eau min ou max par poche) × 56, peu importe le compteur de poches.
 // 56 = poches PAR HEURE, pas par gâchée : ce multiplicateur sert au calcul seulement et ne doit
 // JAMAIS être affiché ("× 56", "56 poches"...) — demande explicite de l'utilisateur.
@@ -2052,6 +2057,7 @@ Règles :
             {isOnline ? "La sauvegarde a échoué." : "Hors ligne — tes changements seront sauvegardés dès que la connexion reviendra."}
           </p>
         )}
+        <div aria-hidden="true" style={{ height: FLOATING_WIDGET_CLEARANCE }} />
           </div>
         </div>
         <BagCounterBubble count={bagCount} onChange={changeBagCount} pumpType={pumpType} onPumpTypeChange={changePumpType} />
@@ -2144,6 +2150,7 @@ Règles :
             </button>
           )}
         </div>
+        <div aria-hidden="true" style={{ height: FLOATING_WIDGET_CLEARANCE }} />
         <BagCounterBubble count={bagCount} onChange={changeBagCount} pumpType={pumpType} onPumpTypeChange={changePumpType} />
       </div>
     );
