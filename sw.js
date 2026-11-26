@@ -1,4 +1,4 @@
-const CACHE_NAME = "fiches-beton-v10";
+const CACHE_NAME = "fiches-beton-v11";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   "./vendor/pdfjs/pdf.min.js",
@@ -25,11 +25,31 @@ const APP_SHELL = [
   "./fiches/sikaquick-1000.pdf",
   "./fiches/sikaquick-voh.pdf",
   "./fiches/king-ms-s10-scc.pdf",
+  "./fiches/mapei-planitop-11.pdf",
+  "./fiches/mapei-planitop-11-scc.pdf",
+  "./fiches/mapei-planigrout-712.pdf",
+  "./fiches/mapei-planigrout-740.pdf",
+  "./fiches/mapei-planigrout-755.pdf",
+  "./fiches/mapei-mapefill-130-wt.pdf",
+  "./fiches/sikalevel-250.pdf",
+  "./fiches/sikagrout-928.pdf",
+  "./fiches/sikagrout-9400.pdf",
+  "./fiches/sikaemaco-s-466.pdf",
+  "./fiches/cpd-non-shrink-grout-uhp.pdf",
 ];
 
+// Le cœur de l'app (page, icônes, pdf.js) est mis en cache d'un seul bloc ; les PDF, eux, un par un :
+// avec plus de 30 Mo de fiches, un seul échec réseau ne doit pas empêcher tout le reste d'être mis
+// en cache (addAll est « tout ou rien »). Un PDF manqué est de toute façon mis en cache à sa
+// première ouverture par le gestionnaire « fetch » ci-dessous.
 self.addEventListener("install", (event) => {
+  const core = APP_SHELL.filter((u) => !u.startsWith("./fiches/"));
+  const pdfs = APP_SHELL.filter((u) => u.startsWith("./fiches/"));
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).catch(() => {})
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await cache.addAll(core).catch(() => {});
+      await Promise.allSettled(pdfs.map((u) => cache.add(u)));
+    }).catch(() => {})
   );
   self.skipWaiting();
 });
