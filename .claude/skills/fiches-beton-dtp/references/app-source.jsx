@@ -1052,7 +1052,7 @@ function App() {
   function shareApp() {
     shareText(
       "Fiches Béton — DTP Construction",
-      `Fiches Béton — DTP Construction\n\nOuvre l'application directement dans ton navigateur, aucun compte ni installation requis :\n${APP_URL}`
+      `Fiches techniques complètes et à jour directement ici :\n${APP_URL}`
     );
   }
 
