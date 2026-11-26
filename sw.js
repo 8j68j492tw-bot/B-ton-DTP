@@ -1,8 +1,9 @@
-const CACHE_NAME = "fiches-beton-v12";
+const CACHE_NAME = "fiches-beton-v13";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   "./vendor/pdfjs/pdf.min.js",
   "./vendor/pdfjs/pdf.worker.min.js",
+  "./brand/mapei.png", "./brand/sika-canada.png", "./brand/king.png", "./brand/cpd-construction-products.png", "./brand/pompe-mp-200.png",
   "./fiches/sikacrete-08-scc.pdf",
   "./fiches/sikacrete-211-flow-plus.pdf",
   "./fiches/sikagrout-212.pdf",

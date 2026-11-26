@@ -82,7 +82,7 @@ const PUMP_CATALOG = [
     poids: "À valider", dimensions: "À valider",
     applications: "Béton projeté (spritz béton)\nMicro-béton et enduits\nCoulis structural (incluant produits type Mapegrout)\nBéton autoplaçant (agrégat jusqu'à 10 mm)\nInjection de micropieux et tirants\nBétonnage sous l'eau\nStabilisation et renforcement de structures",
     notes: DTP_UPGRADE_NOTE,
-    lienFiche: "./fiches/bunker-b100-fiche.pdf", color: "", photoUrl: "",
+    lienFiche: "./fiches/bunker-b100-fiche.pdf", color: "#8b857b", photoUrl: "./brand/pompe-mp-200.png",
   },
 ];
 
@@ -194,6 +194,36 @@ const AUTO_ADDED_PRODUCT_NAMES = PRODUCT_CATALOG.map((p) => p.nom);
 // fusion de marque plutôt que d'éditer seulement PRODUCT_CATALOG (qui ne corrige rien pour les
 // utilisateurs qui ont déjà le produit dans leur registre).
 const BRAND_MERGES = [{ from: "Sika Corporation (É.-U.)", to: "Sika Canada" }];
+
+// Couleurs/logos de marque « de base » : ce sont CEUX DU PROPRIÉTAIRE de l'app (Paramètres → Marques),
+// intégrés au code pour que tout lien partagé (beton-dtp.vercel.app) s'ouvre avec les mêmes couleurs et
+// logos, au lieu des couleurs automatiques. Clé = nom du fabricant en minuscules (comme brandAssets).
+// Une personnalisation faite par un utilisateur sur son appareil (entrée `manual: true`) reste prioritaire.
+// Les images sont dans ./brand/ (même origine, précachées par sw.js).
+const BRAND_DEFAULTS = {
+  "mapei": { bg: "#ffffff", text: "#241C06", logoUrl: "./brand/mapei.png", manual: true, status: "ready" },
+  "sika canada": { bg: "#fdc700", text: "#241C06", logoUrl: "./brand/sika-canada.png", manual: true, status: "ready" },
+  "cpd construction products": { bg: "#ffffff", text: "#241C06", logoUrl: "./brand/cpd-construction-products.png", manual: true, status: "ready" },
+  "king": { bg: "#ffffff", text: "#241C06", logoUrl: "./brand/king.png", manual: true, status: "ready" },
+};
+// À l'enregistrement, on n'écrit pas les entrées identiques à la base : elles continuent de suivre la
+// base du code (si elle change plus tard) tant que l'utilisateur ne les modifie pas lui-même.
+function stripBrandDefaults(assets) {
+  const out = {};
+  Object.keys(assets || {}).forEach((k) => {
+    if (!(BRAND_DEFAULTS[k] && JSON.stringify(assets[k]) === JSON.stringify(BRAND_DEFAULTS[k]))) out[k] = assets[k];
+  });
+  return out;
+}
+function withBrandDefaults(saved) {
+  const out = { ...BRAND_DEFAULTS };
+  Object.keys(saved || {}).forEach((k) => {
+    // L'entrée enregistrée gagne seulement si l'utilisateur l'a personnalisée lui-même (manual) ou s'il
+    // n'existe pas de valeur de base pour ce fabricant ; une couleur/logo « automatique » ne masque pas la base.
+    if (!BRAND_DEFAULTS[k] || (saved[k] && saved[k].manual)) out[k] = saved[k];
+  });
+  return out;
+}
 
 function normalizeForMatch(s) {
   return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
@@ -788,7 +818,7 @@ function App() {
   const [verifState, setVerifState] = useState({ lastCheck: null, lastReport: null });
   const [verifLoaded, setVerifLoaded] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [brandAssets, setBrandAssets] = useState({});
+  const [brandAssets, setBrandAssets] = useState(() => ({ ...BRAND_DEFAULTS }));
   const [apiKey, setApiKey] = useState(() => localStorage.getItem(API_KEY_STORAGE) || "");
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
@@ -959,9 +989,10 @@ function App() {
               patched = true;
             }
           });
-          setBrandAssets(parsed);
-          brandAssetsRef.current = parsed;
-          if (patched) window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(parsed)).catch(() => {});
+          const effective = withBrandDefaults(parsed);
+          setBrandAssets(effective);
+          brandAssetsRef.current = effective;
+          if (patched) window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(stripBrandDefaults(parsed))).catch(() => {});
         }
       } catch (e) {}
     })();
@@ -1181,7 +1212,7 @@ function App() {
       if (current) next[newKey] = current;
       brandAssetsRef.current = next;
       setBrandAssets(next);
-      window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(next)).catch(() => {});
+      window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(stripBrandDefaults(next))).catch(() => {});
     }
     setBrandNameInputs((prev) => {
       const n = { ...prev };
@@ -1270,7 +1301,7 @@ function App() {
       if (marquesAdded > 0) {
         brandAssetsRef.current = nextMarques;
         setBrandAssets(nextMarques);
-        window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(nextMarques)).catch(() => {});
+        window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(stripBrandDefaults(nextMarques))).catch(() => {});
       }
 
       const parts = [];
@@ -1309,7 +1340,7 @@ function App() {
     const next = { ...brandAssetsRef.current, [key]: entry };
     brandAssetsRef.current = next;
     setBrandAssets(next);
-    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(next)).catch(() => {});
+    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(stripBrandDefaults(next))).catch(() => {});
   }
 
   useEffect(() => {
@@ -1333,7 +1364,7 @@ function App() {
     const next = { ...brandAssetsRef.current, [key]: updated };
     brandAssetsRef.current = next;
     setBrandAssets(next);
-    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(next)).catch(() => {});
+    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(stripBrandDefaults(next))).catch(() => {});
   }
 
   function handleLogoError(name) {
@@ -1344,14 +1375,14 @@ function App() {
     const next = { ...brandAssetsRef.current, [key]: updated };
     brandAssetsRef.current = next;
     setBrandAssets(next);
-    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(next)).catch(() => {});
+    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(stripBrandDefaults(next))).catch(() => {});
   }
 
   function saveBrandAsset(key, updated) {
     const next = { ...brandAssetsRef.current, [key]: updated };
     brandAssetsRef.current = next;
     setBrandAssets(next);
-    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(next)).catch(() => {});
+    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(stripBrandDefaults(next))).catch(() => {});
   }
 
   function handleManualColor(name, hexColor) {
@@ -1401,7 +1432,7 @@ function App() {
     delete next[key];
     brandAssetsRef.current = next;
     setBrandAssets(next);
-    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(next)).catch(() => {});
+    window.storage.set(BRAND_ASSETS_KEY, JSON.stringify(stripBrandDefaults(next))).catch(() => {});
   }
 
   async function performDailyCheck() {
