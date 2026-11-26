@@ -3,6 +3,11 @@ const { useState, useEffect, useRef } = React;
 
 const STORAGE_KEY = "produits-beton";
 const VERIF_KEY = "verif-beton";
+// À CHANGER à chaque modification de PRODUCT_CATALOG (données ou liens de fiches) : la vérification
+// locale ne tournait qu'UNE fois par jour, donc un appareil qui l'avait déjà faite le jour même ne
+// recevait les corrections du catalogue que le lendemain. Avec cette version, elle se relance dès
+// que le catalogue du code diffère de celui contre lequel l'appareil a été vérifié la dernière fois.
+const CATALOG_VERSION = "2026-11-26-revision-fiches";
 const BRAND_ASSETS_KEY = "marques-beton";
 const NO_BRAND_LABEL_KEY = "libelle-sans-fabricant";
 const USAGE_BRANDS_KEY = "usage-marques";
@@ -1442,7 +1447,7 @@ function App() {
       const { updatedList, changes } = runLocalCatalogVerification(list);
       if (changes.length > 0) await persist(updatedList);
       const today = todayStr();
-      const newVerifState = { lastCheck: today, lastReport: { date: today, changes } };
+      const newVerifState = { lastCheck: today, catalogVersion: CATALOG_VERSION, lastReport: { date: today, changes } };
       setVerifState(newVerifState);
       try { await window.storage.set(VERIF_KEY, JSON.stringify(newVerifState)); } catch (e) {}
     } finally {
@@ -1460,9 +1465,9 @@ function App() {
     if (!loaded || !verifLoaded) return;
     if (checkRunningRef.current || verifying) return;
     if (products.length === 0) return;
-    if (verifState.lastCheck === todayStr()) return;
+    if (verifState.lastCheck === todayStr() && verifState.catalogVersion === CATALOG_VERSION) return;
     triggerCheck();
-  }, [loaded, verifLoaded, products.length, verifState.lastCheck]);
+  }, [loaded, verifLoaded, products.length, verifState.lastCheck, verifState.catalogVersion]);
 
   function dismissReport() {
     const newState = { ...verifState, lastReport: null };
