@@ -1085,6 +1085,25 @@ function App() {
     setTimeout(() => setShareFeedback(""), 2500);
   }
 
+  // Force le téléchargement de la dernière version : supprime le service worker et ses caches
+  // (page + PDF), puis recharge. Les données de l'utilisateur (registre, pompes, marques, chantiers)
+  // sont dans localStorage et ne sont PAS touchées.
+  async function forceAppUpdate() {
+    try {
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+    } catch (e) {}
+    try {
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) {}
+    window.location.reload();
+  }
+
   function shareApp() {
     shareText(
       "Fiches Béton — DTP Construction",
@@ -1768,6 +1787,19 @@ Règles :
           </div>
           {importNote && <p style={{ fontSize: 12, color: C.info, margin: "10px 0 0" }}>{importNote}</p>}
           {importError && <p style={{ fontSize: 12, color: C.accent, margin: "10px 0 0" }}>{importError}</p>}
+        </div>
+
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "16px", marginTop: 14 }}>
+          <p style={{ fontFamily: "'Oswald', sans-serif", fontSize: 14, fontWeight: 600, margin: "0 0 8px" }}>Mise à jour de l'application</p>
+          <p style={{ fontSize: 13, lineHeight: 1.6, color: C.textSecondary, margin: "0 0 6px" }}>
+            Version des fiches : <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{CATALOG_VERSION}</span>
+          </p>
+          <p style={{ fontSize: 13, lineHeight: 1.6, color: C.textSecondary, margin: "0 0 14px" }}>
+            Si une fiche ne s'ouvre pas ou si les données semblent anciennes, ce bouton télécharge la dernière version de l'application. Tes fiches, pompes, marques et chantiers ne sont pas touchés.
+          </p>
+          <button onClick={forceAppUpdate} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", background: "none", color: C.text, border: `1px solid ${C.border}`, padding: "10px 12px", fontSize: 13, fontFamily: "'IBM Plex Sans', sans-serif", cursor: "pointer" }}>
+            Mettre à jour l'application maintenant
+          </button>
         </div>
 
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "16px", marginTop: 14 }}>
