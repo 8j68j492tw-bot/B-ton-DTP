@@ -1,4 +1,4 @@
-const CACHE_NAME = "fiches-beton-v11";
+const CACHE_NAME = "fiches-beton-v12";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   "./vendor/pdfjs/pdf.min.js",
